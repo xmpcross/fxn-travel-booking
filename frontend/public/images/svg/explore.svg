@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 160" fill="none">
+  <ellipse cx="118" cy="138" rx="58" ry="6" fill="#0f172a" opacity="0.08" />
+  <!-- globe sphere -->
+  <circle cx="100" cy="78" r="50" fill="#10b981" />
+  <!-- ocean tint highlight -->
+  <path d="M58 60 a50 50 0 0 1 84 -22" stroke="#34d399" stroke-width="6" stroke-linecap="round" opacity="0.6" />
+  <!-- continents -->
+  <path d="M70 60 q10 -10 22 -4 q10 6 6 18 q-6 12 -22 8 q-12 -4 -6 -22 Z" fill="#065f46" />
+  <path d="M104 92 q14 -6 24 6 q4 12 -10 16 q-18 4 -22 -8 q-2 -10 8 -14 Z" fill="#047857" />
+  <path d="M128 56 q8 0 12 6 q3 8 -6 12 q-12 4 -14 -6 q-1 -8 8 -12 Z" fill="#065f46" />
+  <!-- meridian -->
+  <ellipse cx="100" cy="78" rx="50" ry="20" stroke="#a7f3d0" stroke-width="1.5" opacity="0.6" />
+  <!-- magnifier -->
+  <g transform="translate(140,82)">
+    <circle r="22" fill="#ffffff" stroke="#0f766e" stroke-width="4" />
+    <circle r="22" fill="#a7f3d0" opacity="0.45" />
+    <line x1="16" y1="16" x2="34" y2="34" stroke="#0f766e" stroke-width="6" stroke-linecap="round" />
+    <line x1="16" y1="16" x2="32" y2="32" stroke="#14b8a6" stroke-width="3" stroke-linecap="round" />
+  </g>
+  <!-- floating coin -->
+  <g transform="translate(180,30)">
+    <circle r="14" fill="#facc15" stroke="#ca8a04" stroke-width="2" />
+    <text x="0" y="5" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#7c2d12" text-anchor="middle">$</text>
+  </g>
+</svg>

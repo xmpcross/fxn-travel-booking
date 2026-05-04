@@ -1,0 +1,20 @@
+services:
+  app:
+    image: node:20-alpine
+    container_name: fxn-chisfis-frontend
+    working_dir: /app
+    command: sh -c "npm run start -- -p 3010 -H 0.0.0.0"
+    volumes:
+      - ./frontend:/app
+    env_file:
+      - ./frontend/.env.local
+    ports:
+      - "127.0.0.1:3010:3010"
+    networks:
+      - fxn-net
+    restart: unless-stopped
+
+networks:
+  fxn-net:
+    external: true
+    name: fxnstudio-cms_fxn-net
