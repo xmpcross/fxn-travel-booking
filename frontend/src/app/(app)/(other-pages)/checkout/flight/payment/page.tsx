@@ -9,6 +9,7 @@ import {
   clearCheckoutState,
   FlightSummary,
   buildBookingPayload,
+  fetchWithTimeout,
   getInitialPassengers,
   isStaleDuffelReferenceError,
   loadCheckoutState,
@@ -121,10 +122,10 @@ function FlightPaymentPageClient() {
       setPaymentError(null);
 
       try {
-        const response = await fetch("/api/flights/component-key", {
+        const response = await fetchWithTimeout("/api/flights/component-key", {
           method: "POST",
           headers: { "Content-Type": "application/json" }
-        });
+        }, 15000);
 
         const payload = await response.json();
 
@@ -177,7 +178,7 @@ function FlightPaymentPageClient() {
     setSuccessOrderId(null);
 
     try {
-      const response = await fetch("/api/flights/order", {
+      const response = await fetchWithTimeout("/api/flights/order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -252,7 +253,7 @@ function FlightPaymentPageClient() {
         throw new Error("Card authentication was not completed. Please try again.");
       }
 
-      const response = await fetch("/api/flights/order", {
+      const response = await fetchWithTimeout("/api/flights/order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

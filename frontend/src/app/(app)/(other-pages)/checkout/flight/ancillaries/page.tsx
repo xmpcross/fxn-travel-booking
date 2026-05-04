@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
   clearCheckoutState,
+  fetchWithTimeout,
   FlightSummary,
   buildBookingPayload,
   getInitialPassengers,
@@ -65,11 +66,11 @@ function FlightAncillariesPageClient() {
       setError(null);
 
       try {
-        const response = await fetch("/api/flights/ancillaries", {
+        const response = await fetchWithTimeout("/api/flights/ancillaries", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ offerId: selectedOfferId })
-        });
+        }, 15000);
 
         const payload = await response.json();
 

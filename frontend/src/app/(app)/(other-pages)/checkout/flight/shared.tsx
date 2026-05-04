@@ -186,13 +186,40 @@ export function mergeCheckoutState(partialState: CheckoutState) {
 export function isStaleDuffelReferenceError(message: string) {
   const normalizedMessage = message.toLowerCase();
 
+  // Catches Duffel's various phrasings for "this offer/offer-request can't be
+  // used anymore" — added phrases came from real 400/404 responses we observed.
+  // Better to be over-eager here: a false positive just means we recommend a
+  // re-search, which is harmless. Network timeouts (handled below) are also
+  // surfaced as stale because by the time you retry, your offer may well be expired.
   return (
     normalizedMessage.includes("no longer available") ||
     normalizedMessage.includes("linked record") ||
-    normalizedMessage.includes("linked record(s) that were not found") ||
     normalizedMessage.includes("were not found in your account") ||
-    normalizedMessage.includes("fare has expired")
+    normalizedMessage.includes("fare has expired") ||
+    normalizedMessage.includes("offer has expired") ||
+    normalizedMessage.includes("offer is no longer") ||
+    normalizedMessage.includes("could not find offer") ||
+    normalizedMessage.includes("offer_request not found") ||
+    normalizedMessage.includes("offer not found") ||
+    normalizedMessage.includes("request timed out") ||
+    normalizedMessage.includes("aborted") ||
+    /\bexpired\b/.test(normalizedMessage)
   );
+}
+
+/**
+ * Run a fetch with an abort timeout. Throws AbortError after `timeoutMs`.
+ * Lets the catch handler treat the timeout as a stale-reference (since by the
+ * time you retry, the offer is usually toast anyway).
+ */
+export async function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit = {}, timeoutMs = 15000): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(input, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 export function getInitialPassengers(selection: StoredFlightSelection | null): PassengerForm[] {
