@@ -1,5 +1,7 @@
+import { Prisma } from "../../../../../generated/prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 import { createStayBooking, type StayBookingGuest } from "@/lib/duffel";
+import { prisma } from "@/lib/prisma";
 
 type CreateStayOrderBody = {
   quoteId?: string;
@@ -85,7 +87,50 @@ export async function POST(request: NextRequest) {
       body.idempotencyKey
     );
 
-    const bookingRecord = booking as { id?: string; reference?: string } | null;
+    const bookingRecord = booking as
+      | {
+          id?: string;
+          reference?: string;
+          total_amount?: string;
+          total_currency?: string;
+        }
+      | null;
+
+    // Persist to our own Booking table. Failure here must NOT fail the
+    // request — Duffel has already taken payment + confirmed the booking,
+    // so a 500 to the user would be misleading. We log and move on; the
+    // booking is recoverable via the duffelOrderId later.
+    if (bookingRecord?.id) {
+      try {
+        await prisma.booking.create({
+          data: {
+            type: "stay",
+            status: "confirmed",
+            duffelOrderId: bookingRecord.id,
+            bookingReference: bookingRecord.reference ?? null,
+            currency: bookingRecord.total_currency ?? null,
+            totalAmount: bookingRecord.total_amount
+              ? new Prisma.Decimal(bookingRecord.total_amount)
+              : null,
+            providerName: "duffel",
+            offerId: body.quoteId,
+            bookedAt: new Date(),
+            metadata: {
+              guests: body.guests,
+              email: body.email,
+              phoneNumber: body.phoneNumber,
+              specialRequests: body.specialRequests ?? null,
+              duffelBooking: bookingRecord
+            } as unknown as Prisma.InputJsonValue
+          }
+        });
+      } catch (persistError) {
+        console.error(
+          "Stay booking succeeded at Duffel but Prisma persistence failed:",
+          { duffelOrderId: bookingRecord.id, error: persistError }
+        );
+      }
+    }
 
     return NextResponse.json({
       bookingId: bookingRecord?.id ?? null,
