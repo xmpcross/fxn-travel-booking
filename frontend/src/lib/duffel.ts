@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { Duffel } from "@duffel/api";
 import type { CreateOrder } from "@duffel/api/types";
 
@@ -263,4 +264,76 @@ async function resolveStayCoordinates(input: StaySearchInput): Promise<ResolvedC
     longitude: Number(firstResult.lon),
     label: firstResult.display_name ?? input.destinationQuery
   };
+}
+
+// ---- Stays: quote + booking ----
+
+export type StayBookingGuest = {
+  given_name: string;
+  family_name: string;
+};
+
+export type StayBookingInput = {
+  quote_id: string;
+  guests: StayBookingGuest[];
+  email: string;
+  phone_number: string;
+  accommodation_special_requests?: string;
+  payment?: { card_id: string };
+  loyalty_programme_account_number?: string;
+};
+
+export async function quoteStayRate(rateId: string) {
+  const duffel = getDuffelClient();
+  const response = await duffel.stays.quotes.create(rateId);
+  return response.data;
+}
+
+// Booking creation goes via raw fetch so we can attach an Idempotency-Key
+// header — the SDK's typed .create() doesn't expose per-call request options.
+// Pass the same key on retries to dedupe; pass a fresh one for new attempts.
+export async function createStayBooking(payload: StayBookingInput, idempotencyKey?: string) {
+  const key = idempotencyKey ?? randomUUID();
+
+  const response = await fetch(`${DUFFEL_API_BASE_URL}/stays/bookings`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${getAccessToken()}`,
+      "Duffel-Version": "v2",
+      "Content-Type": "application/json",
+      Accept: "application/json",
+      "Idempotency-Key": key
+    },
+    body: JSON.stringify({ data: payload }),
+    cache: "no-store"
+  });
+
+  const responseText = await response.text();
+  let parsed: unknown = null;
+  try {
+    parsed = JSON.parse(responseText);
+  } catch {
+    parsed = null;
+  }
+
+  if (!response.ok) {
+    if (parsed && typeof parsed === "object" && "errors" in parsed) {
+      const errors = (parsed as { errors?: Array<{ message?: string; title?: string }> }).errors ?? [];
+      const message = errors.map((item) => item.message ?? item.title).filter(Boolean).join(", ");
+      throw new Error(message || `Duffel stay booking failed with status ${response.status}`);
+    }
+    throw new Error(responseText || `Duffel stay booking failed with status ${response.status}`);
+  }
+
+  if (parsed && typeof parsed === "object" && "data" in parsed) {
+    return (parsed as { data: unknown }).data;
+  }
+
+  throw new Error("Unexpected Duffel stay booking response shape.");
+}
+
+export async function getStayBooking(bookingId: string) {
+  const duffel = getDuffelClient();
+  const response = await duffel.stays.bookings.get(bookingId);
+  return response.data;
 }

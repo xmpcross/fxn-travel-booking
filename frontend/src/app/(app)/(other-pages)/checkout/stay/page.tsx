@@ -16,6 +16,14 @@ type StoredStaySelection = {
       };
     };
   };
+  rateId?: string;
+  search?: {
+    destinationQuery?: string | null;
+    checkInDate?: string | null;
+    checkOutDate?: string | null;
+    rooms?: string | null;
+    guests?: string | null;
+  };
 };
 
 const STORAGE_KEY = "selected-stay-result";

@@ -4,6 +4,13 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 
+type StayRate = {
+  id: string;
+  total_amount?: string;
+  total_currency?: string;
+  board_type?: string | null;
+};
+
 type StayResult = {
   id?: string;
   check_in_date?: string;
@@ -11,6 +18,9 @@ type StayResult = {
   search_result_id?: string;
   cheapest_rate_total_amount?: string;
   cheapest_rate_currency?: string;
+  // Duffel returns rates sorted ascending by total_amount, so rates[0] is the cheapest.
+  // We need a rate id to drive the /stays/quotes step before booking.
+  rates?: StayRate[];
   accommodation?: {
     id?: string;
     name?: string;
@@ -88,8 +98,18 @@ function StaysPageContent() {
   }, [searchParams]);
 
   function handleSelect(result: StayResult) {
+    const cheapestRate = result.rates?.[0];
+
+    if (!cheapestRate?.id) {
+      setError(
+        "This stay is missing rate details from Duffel — please pick another or rerun the search."
+      );
+      return;
+    }
+
     const payload = {
       result,
+      rateId: cheapestRate.id,
       search: {
         destinationQuery: params.get("destinationQuery"),
         checkInDate: params.get("checkInDate"),
