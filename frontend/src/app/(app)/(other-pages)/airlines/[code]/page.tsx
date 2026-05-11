@@ -6,13 +6,6 @@ import { notFound } from 'next/navigation'
 import { getAirlineSupplement } from '@/data/airlineSupplement'
 import { findAirlineByCode } from '@/lib/duffel'
 
-function originFactsSlug(name: string, override?: string): string {
-  if (override) return override
-  return name
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-}
 
 export const revalidate = 86_400
 
@@ -401,21 +394,6 @@ export default async function AirlineDetailPage({
           </section>
         ) : null}
 
-        {/* Read more on Origin Facts */}
-        <section className="mt-4">
-          <a
-            href={`https://www.originfacts.com/airlines/${originFactsSlug(
-              airline.name,
-              supplement?.originFactsSlug,
-            )}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 text-sm font-semibold text-orange-600 hover:underline dark:text-orange-400"
-          >
-            Read more about {airline.name} on Origin Facts
-            <ArrowTopRightOnSquareIcon className="size-4" />
-          </a>
-        </section>
       </div>
     </main>
   )
