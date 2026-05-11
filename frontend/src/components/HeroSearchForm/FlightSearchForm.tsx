@@ -1,6 +1,7 @@
 'use client'
 
 import { Popover, PopoverButton, PopoverPanel } from '@headlessui/react'
+import { ArrowsRightLeftIcon } from '@heroicons/react/24/outline'
 import { AirplaneTakeOffIcon } from '@/components/icons/AirplaneTakeOffIcon'
 import { BedroomIcon } from '@/components/icons/BedroomIcon'
 import clsx from 'clsx'
@@ -122,6 +123,28 @@ export const FlightSearchForm: FC<Props> = ({ className, openInNewTab = true, in
   // (PER)" and is replaced once geolocation resolves to the visitor's nearest
   // city + IATA (e.g. "Bangkok (BKK)").
   const [originPlaceholder, setOriginPlaceholder] = useState<string>('Perth (PER)')
+
+  // From/To defaults are tracked here so the Swap button can flip them
+  // by remounting the two SimpleAirportInputs with new defaultValues.
+  const [fromDefault, setFromDefault] = useState<string | undefined>(initial?.origin)
+  const [toDefault, setToDefault] = useState<string | undefined>(initial?.destination)
+  const [swapCount, setSwapCount] = useState(0)
+
+  const handleSwap = () => {
+    // Read whatever the user has actually typed (the form is uncontrolled),
+    // fall back to the tracked defaults if the inputs aren't in the DOM yet.
+    const fromInput = document.querySelector<HTMLInputElement>(
+      'input[name="flying-from-location"]',
+    )
+    const toInput = document.querySelector<HTMLInputElement>(
+      'input[name="flying-to-location"]',
+    )
+    const currentFrom = (fromInput?.value ?? fromDefault ?? '').trim()
+    const currentTo = (toInput?.value ?? toDefault ?? '').trim()
+    setFromDefault(currentTo)
+    setToDefault(currentFrom)
+    setSwapCount((n) => n + 1)
+  }
 
   // Detect visitor's nearest IATA from IP-based geolocation, when the form
   // is rendered without an explicit origin (i.e. on the home page).
@@ -263,21 +286,36 @@ export const FlightSearchForm: FC<Props> = ({ className, openInNewTab = true, in
           tripType === 'return' ? 'lg:grid-cols-6' : 'lg:grid-cols-5'
         )}
       >
-        <SimpleAirportInput
-          /* Re-mount once when geolocation resolves so the dynamic placeholder
-             actually replaces the initial "Perth (PER)" hint. */
-          key={`from-${originPlaceholder}`}
-          inputName="flying-from-location"
-          label="From"
-          placeholder={originPlaceholder}
-          defaultValue={initial?.origin}
-        />
-        <SimpleAirportInput
-          inputName="flying-to-location"
-          label="To"
-          placeholder="Singapore (SIN)"
-          defaultValue={initial?.destination}
-        />
+        {/* From + To live in a single grid cell that spans 2 columns so we
+            can collapse the gap between them and float a Swap button at
+            their boundary. */}
+        <div className="relative grid grid-cols-2 gap-px sm:col-span-2 lg:col-span-2">
+          <SimpleAirportInput
+            /* Re-mount once when geolocation resolves so the dynamic
+               placeholder actually replaces the initial "Perth (PER)" hint,
+               and once per Swap so the new defaultValue takes effect. */
+            key={`from-${swapCount}-${originPlaceholder}`}
+            inputName="flying-from-location"
+            label="From"
+            placeholder={originPlaceholder}
+            defaultValue={fromDefault}
+          />
+          <SimpleAirportInput
+            key={`to-${swapCount}`}
+            inputName="flying-to-location"
+            label="To"
+            placeholder="Singapore (SIN)"
+            defaultValue={toDefault}
+          />
+          <button
+            type="button"
+            onClick={handleSwap}
+            aria-label="Swap From and To"
+            className="absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 inline-flex size-8 items-center justify-center rounded-full border border-neutral-200 bg-white text-neutral-600 shadow-sm transition-colors hover:border-orange-400 hover:text-orange-600 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-300"
+          >
+            <ArrowsRightLeftIcon className="size-4" />
+          </button>
+        </div>
 
         <DateRangePopover
           tripType={tripType}
