@@ -22,6 +22,10 @@ type FlightOffer = {
   total_amount?: string
   total_currency?: string
   owner?: { name?: string; iata_code?: string }
+  conditions?: {
+    refund_before_departure?: { allowed?: boolean } | null
+    change_before_departure?: { allowed?: boolean } | null
+  }
   slices?: Array<{
     duration?: string
     origin?: { iata_code?: string; city_name?: string }
@@ -48,7 +52,7 @@ type FlightSearchResponse = {
 }
 
 type SortMode = 'best' | 'cheapest' | 'fastest'
-type StopsFilter = 'any' | 'direct' | 'one_stop'
+type StopsFilter = 'any' | 'direct' | 'one_stop' | 'two_stops'
 type TimeBucket = 'early' | 'morning' | 'afternoon' | 'evening'
 
 const SORT_LABELS: Record<SortMode, string> = {
@@ -74,6 +78,9 @@ type NormalizedOffer = {
   airlineLogo: string | null
   durationMinutes: number
   stops: number
+  refundable: boolean
+  changeable: boolean
+  hasOvernightLayover: boolean
   score: number
 }
 
@@ -138,6 +145,25 @@ function normalizeOffer(offer: FlightOffer): NormalizedOffer | null {
     firstSegment?.operating_carrier?.logo_symbol_url ??
     null
 
+  const refundable = offer.conditions?.refund_before_departure?.allowed === true
+  const changeable = offer.conditions?.change_before_departure?.allowed === true
+
+  // Overnight layover: between consecutive segments, the layover crosses
+  // midnight in the layover-airport's local wall clock.
+  const segs = firstSlice.segments ?? []
+  let hasOvernightLayover = false
+  for (let i = 1; i < segs.length; i++) {
+    const prevArr = segs[i - 1]?.arriving_at
+    const nextDep = segs[i]?.departing_at
+    if (!prevArr || !nextDep) continue
+    const arrDate = prevArr.match(/^(\d{4}-\d{2}-\d{2})/)?.[1]
+    const depDate = nextDep.match(/^(\d{4}-\d{2}-\d{2})/)?.[1]
+    if (arrDate && depDate && arrDate !== depDate) {
+      hasOvernightLayover = true
+      break
+    }
+  }
+
   return {
     id: offer.id,
     offer,
@@ -148,6 +174,9 @@ function normalizeOffer(offer: FlightOffer): NormalizedOffer | null {
     airlineLogo,
     durationMinutes,
     stops,
+    refundable,
+    changeable,
+    hasOvernightLayover,
     score: calculateBestScore(amount, durationMinutes, stops),
   }
 }
@@ -194,6 +223,9 @@ function FlightsContent() {
       .filter(Boolean)
   })
   const [stopsFilter, setStopsFilter] = useState<StopsFilter>('any')
+  const [refundableOnly, setRefundableOnly] = useState(false)
+  const [changeableOnly, setChangeableOnly] = useState(false)
+  const [allowOvernightStopovers, setAllowOvernightStopovers] = useState(true)
   const [maxPrice, setMaxPrice] = useState<number | null>(null)
   const [departBuckets, setDepartBuckets] = useState<TimeBucket[]>([])
   const [arriveBuckets, setArriveBuckets] = useState<TimeBucket[]>([])
@@ -366,7 +398,18 @@ function FlightsContent() {
   // Reset pagination when filters change.
   useEffect(() => {
     setVisibleCount(10)
-  }, [selectedAirlines, sortMode, stopsFilter, maxPrice, departBuckets, arriveBuckets, maxDurationMin])
+  }, [
+    selectedAirlines,
+    sortMode,
+    stopsFilter,
+    maxPrice,
+    departBuckets,
+    arriveBuckets,
+    maxDurationMin,
+    refundableOnly,
+    changeableOnly,
+    allowOvernightStopovers,
+  ])
 
   const filteredOffers = useMemo(() => {
     const activeMaxPrice = maxPrice ?? highestPrice
@@ -381,7 +424,11 @@ function FlightsContent() {
       const stopsMatch =
         stopsFilter === 'any' ||
         (stopsFilter === 'direct' && offer.stops === 0) ||
-        (stopsFilter === 'one_stop' && offer.stops <= 1)
+        (stopsFilter === 'one_stop' && offer.stops <= 1) ||
+        (stopsFilter === 'two_stops' && offer.stops <= 2)
+      const refundableMatch = !refundableOnly || offer.refundable
+      const changeableMatch = !changeableOnly || offer.changeable
+      const overnightMatch = allowOvernightStopovers || !offer.hasOvernightLayover
 
       const firstSlice = offer.offer.slices?.[0]
       const segs = firstSlice?.segments ?? []
@@ -390,7 +437,17 @@ function FlightsContent() {
       const departTimeMatch = depHour < 0 || inAnyBucket(depHour, departBuckets)
       const arriveTimeMatch = arrHour < 0 || inAnyBucket(arrHour, arriveBuckets)
 
-      return airlineMatch && priceMatch && durationMatch && stopsMatch && departTimeMatch && arriveTimeMatch
+      return (
+        airlineMatch &&
+        priceMatch &&
+        durationMatch &&
+        stopsMatch &&
+        refundableMatch &&
+        changeableMatch &&
+        overnightMatch &&
+        departTimeMatch &&
+        arriveTimeMatch
+      )
     })
 
     const sorted = [...filtered]
@@ -409,6 +466,9 @@ function FlightsContent() {
     stopsFilter,
     departBuckets,
     arriveBuckets,
+    refundableOnly,
+    changeableOnly,
+    allowOvernightStopovers,
   ])
 
   const currency = normalizedOffers[0]?.currency ?? ''
@@ -511,7 +571,26 @@ function FlightsContent() {
                   { value: 'any', label: 'Any' },
                   { value: 'direct', label: 'Direct' },
                   { value: 'one_stop', label: '1 stop' },
+                  { value: 'two_stops', label: '2 stops' },
                 ]}
+              />
+              <CheckboxRow
+                label="Allow overnight stopovers"
+                checked={allowOvernightStopovers}
+                onChange={setAllowOvernightStopovers}
+              />
+            </SidebarSection>
+
+            <SidebarSection title="Flexibility">
+              <CheckboxRow
+                label="Refundable only"
+                checked={refundableOnly}
+                onChange={setRefundableOnly}
+              />
+              <CheckboxRow
+                label="Changeable only"
+                checked={changeableOnly}
+                onChange={setChangeableOnly}
               />
             </SidebarSection>
 
