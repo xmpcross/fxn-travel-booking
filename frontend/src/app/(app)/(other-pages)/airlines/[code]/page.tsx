@@ -55,6 +55,7 @@ export default async function AirlineDetailPage({
   const findFlightsHref = new URLSearchParams()
   findFlightsHref.set('adults', '1')
   findFlightsHref.set('cabinClass', 'economy')
+  findFlightsHref.set('tripType', 'return')
   if (iata) findFlightsHref.set('airline', iata)
   const flightSearchHref = `/flight-search?${findFlightsHref.toString()}`
 

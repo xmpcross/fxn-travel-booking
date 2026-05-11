@@ -549,7 +549,14 @@ function FlightsContent() {
               cabinClass: VALID_CABINS.includes(params.get('cabinClass') as CabinClass)
                 ? (params.get('cabinClass') as CabinClass)
                 : 'economy',
-              tripType: params.get('returnDate') ? 'return' : 'oneway',
+              tripType:
+                params.get('tripType') === 'return'
+                  ? 'return'
+                  : params.get('tripType') === 'oneway'
+                    ? 'oneway'
+                    : params.get('returnDate')
+                      ? 'return'
+                      : 'oneway',
             }}
           />
         </div>
