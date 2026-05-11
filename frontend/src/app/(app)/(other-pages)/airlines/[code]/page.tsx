@@ -65,7 +65,7 @@ export default async function AirlineDetailPage({
         {/* Hero */}
         <section className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900 sm:p-8">
           <div className="flex flex-col items-start gap-5 sm:flex-row sm:items-center">
-            <div className="flex size-24 shrink-0 items-center justify-center rounded-xl bg-neutral-50 p-3 dark:bg-neutral-950">
+            <div className="flex size-36 shrink-0 items-center justify-center rounded-xl bg-neutral-50 p-3 dark:bg-neutral-950">
               {lockup || symbol ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img

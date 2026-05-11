@@ -47,7 +47,11 @@ select {
   font: inherit;
 }
 
-a {
+/* :where() drops the specificity to 0,0,0,0 so per-element Tailwind
+   utilities like text-white / text-orange-600 on <Link> components
+   always win. Without this the rule was clobbering button text colour
+   on any <a>-wrapped CTA. */
+:where(a) {
   color: inherit;
   text-decoration: none;
 }
