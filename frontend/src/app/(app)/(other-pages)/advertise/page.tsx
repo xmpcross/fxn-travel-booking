@@ -127,7 +127,7 @@ export default function AdvertisePage() {
             <p className="text-sm font-semibold uppercase tracking-wide text-orange-600">
               Advertise with NXT.DEALS
             </p>
-            <h1 className="mt-4 text-[2.25rem] font-bold tracking-tight text-neutral-900 sm:text-5xl dark:text-neutral-100">
+            <h1 className="mt-4 text-[3rem] font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
               Making great trips happen.
             </h1>
             <p className="mt-6 max-w-2xl text-base text-neutral-600 sm:text-lg dark:text-neutral-400">
@@ -156,7 +156,7 @@ export default function AdvertisePage() {
 
       {/* Trust */}
       <section className="container mt-16 lg:mt-20">
-        <div className="text-center">
+        <div>
           <h2 className="text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
             We work with the best.
           </h2>
@@ -232,7 +232,7 @@ export default function AdvertisePage() {
 
       {/* Products */}
       <section id="products" className="container mt-16 lg:mt-20">
-        <div className="text-center">
+        <div>
           <h2 className="text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
             A full spectrum of solutions.
           </h2>
@@ -275,7 +275,7 @@ export default function AdvertisePage() {
 
       {/* Value pillars */}
       <section className="container mt-16 lg:mt-20">
-        <div className="text-center">
+        <div>
           <h2 className="text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
             Why team up with us.
           </h2>
@@ -309,7 +309,7 @@ export default function AdvertisePage() {
       {/* Contact form */}
       <section id="contact" className="container mt-16 lg:mt-20">
         <div className="mx-auto rounded-3xl bg-white p-8 shadow-sm dark:bg-neutral-900 sm:p-10">
-          <div className="text-center">
+          <div>
             <div className="inline-flex size-10 items-center justify-center rounded-full bg-orange-100 text-orange-600 dark:bg-orange-950/40 dark:text-orange-300">
               <ChatBubbleLeftRightIcon className="size-5" />
             </div>

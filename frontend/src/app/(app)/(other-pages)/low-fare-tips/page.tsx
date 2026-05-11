@@ -144,7 +144,7 @@ export default function LowFareTipsPage() {
           <p className="text-sm font-semibold uppercase tracking-wide text-orange-600">
             Cheap flight guide
           </p>
-          <h1 className="mt-3 text-[2rem] font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
+          <h1 className="mt-3 text-[3rem] font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
             Low fare tips
           </h1>
           <p className="mt-4 text-base text-neutral-600 dark:text-neutral-400">
