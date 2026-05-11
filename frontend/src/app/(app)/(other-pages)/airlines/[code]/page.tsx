@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
 import { getAirlineSupplement } from '@/data/airlineSupplement'
-import { findAirlineByCode } from '@/lib/duffel'
+import { findAirlineByCode, listAllAirlines, type Airline } from '@/lib/duffel'
 
 
 export const revalidate = 86_400
@@ -31,7 +31,16 @@ export default async function AirlineDetailPage({
   params: Promise<{ code: string }>
 }) {
   const { code } = await params
-  const airline = await findAirlineByCode(code)
+  // Walk Duffel's full airline list once (cached 24h) so partner / subsidiary
+  // logos can be looked up by IATA without re-fetching the API per ref.
+  const allAirlines = await listAllAirlines()
+  const byIata = new Map<string, Airline>()
+  for (const a of allAirlines) {
+    if (a.iata_code) byIata.set(a.iata_code.toUpperCase(), a)
+  }
+  const upper = code.toUpperCase()
+  const airline =
+    byIata.get(upper) ?? allAirlines.find((a) => a.id === code) ?? null
   if (!airline) notFound()
 
   const lockup = airline.logo_lockup_url
@@ -65,7 +74,7 @@ export default async function AirlineDetailPage({
         {/* Hero */}
         <section className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900 sm:p-8">
           <div className="flex flex-col items-start gap-5 sm:flex-row sm:items-center">
-            <div className="flex size-36 shrink-0 items-center justify-center rounded-xl bg-neutral-50 p-3 dark:bg-neutral-950">
+            <div className="flex size-56 shrink-0 items-center justify-center rounded-xl bg-neutral-50 p-3 dark:bg-neutral-950">
               {lockup || symbol ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -350,16 +359,35 @@ export default async function AirlineDetailPage({
                     <div className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
                       Codeshare partners
                     </div>
-                    <div className="mt-2 flex flex-wrap gap-1.5">
-                      {supplement.partners.map((p) => (
-                        <Link
-                          key={p}
-                          href={`/airlines/${encodeURIComponent(p)}`}
-                          className="inline-flex items-center rounded-md bg-neutral-100 px-2.5 py-1 font-mono text-xs font-semibold text-neutral-700 hover:bg-orange-100 hover:text-orange-700 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-orange-950/40 dark:hover:text-orange-300"
-                        >
-                          {p}
-                        </Link>
-                      ))}
+                    <div className="mt-2 flex flex-wrap gap-3">
+                      {supplement.partners.map((p) => {
+                        const partner = byIata.get(p.toUpperCase())
+                        const logo =
+                          partner?.logo_lockup_url ?? partner?.logo_symbol_url ?? null
+                        const name = partner?.name ?? p
+                        return (
+                          <Link
+                            key={p}
+                            href={`/airlines/${encodeURIComponent(p)}`}
+                            title={name}
+                            className="group flex h-12 items-center gap-2 rounded-md border border-neutral-200 bg-white px-2 py-1.5 hover:border-orange-400 dark:border-neutral-700 dark:bg-neutral-900"
+                          >
+                            {logo ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img
+                                src={logo}
+                                alt={name}
+                                className="max-h-7 max-w-20 object-contain"
+                                loading="lazy"
+                              />
+                            ) : (
+                              <span className="font-mono text-xs font-semibold text-neutral-700 dark:text-neutral-300">
+                                {p}
+                              </span>
+                            )}
+                          </Link>
+                        )
+                      })}
                     </div>
                   </div>
                 ) : null}
@@ -368,25 +396,45 @@ export default async function AirlineDetailPage({
                     <div className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
                       Subsidiaries
                     </div>
-                    <ul className="mt-2 space-y-1 text-sm text-neutral-700 dark:text-neutral-300">
-                      {supplement.subsidiaries.map((s) => (
-                        <li key={`${s.name}-${s.iata ?? ''}`}>
-                          {s.iata ? (
+                    <div className="mt-2 flex flex-wrap gap-3">
+                      {supplement.subsidiaries.map((s) => {
+                        const sub = s.iata ? byIata.get(s.iata.toUpperCase()) : null
+                        const logo =
+                          sub?.logo_lockup_url ?? sub?.logo_symbol_url ?? null
+                        if (s.iata) {
+                          return (
                             <Link
+                              key={`${s.name}-${s.iata}`}
                               href={`/airlines/${encodeURIComponent(s.iata)}`}
-                              className="hover:text-orange-600 dark:hover:text-orange-400"
+                              title={s.name}
+                              className="group flex h-12 items-center gap-2 rounded-md border border-neutral-200 bg-white px-2 py-1.5 hover:border-orange-400 dark:border-neutral-700 dark:bg-neutral-900"
                             >
-                              {s.name}{' '}
-                              <span className="font-mono text-xs text-neutral-500">
-                                ({s.iata})
-                              </span>
+                              {logo ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img
+                                  src={logo}
+                                  alt={s.name}
+                                  className="max-h-7 max-w-20 object-contain"
+                                  loading="lazy"
+                                />
+                              ) : (
+                                <span className="text-sm font-medium text-neutral-800 dark:text-neutral-200">
+                                  {s.name}
+                                </span>
+                              )}
                             </Link>
-                          ) : (
-                            s.name
-                          )}
-                        </li>
-                      ))}
-                    </ul>
+                          )
+                        }
+                        return (
+                          <span
+                            key={s.name}
+                            className="flex h-12 items-center rounded-md border border-neutral-200 bg-white px-3 text-sm font-medium text-neutral-700 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-300"
+                          >
+                            {s.name}
+                          </span>
+                        )
+                      })}
+                    </div>
                   </div>
                 ) : null}
               </div>
