@@ -748,10 +748,44 @@ function FlightsContent() {
                 {error}
               </div>
             ) : filteredOffers.length === 0 ? (
-              <div className="rounded-2xl border border-neutral-200 bg-white p-8 text-center text-sm text-neutral-500 dark:border-neutral-800 dark:bg-neutral-900">
-                No flights match your filters. Try widening price, stops, duration, or airline
-                selection.
-              </div>
+              normalizedOffers.length > 0 && selectedAirlines.length > 0 ? (
+                <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6 text-sm dark:border-amber-900 dark:bg-amber-950/30">
+                  <p className="font-semibold text-amber-900 dark:text-amber-200">
+                    None of the {normalizedOffers.length.toLocaleString()}{' '}
+                    offer{normalizedOffers.length === 1 ? '' : 's'} for{' '}
+                    {originLabel && destinationLabel
+                      ? `${originLabel} → ${destinationLabel}`
+                      : 'this route'}{' '}
+                    are operated by your selected airline
+                    {selectedAirlines.length > 1 ? 's' : ''} ({selectedAirlines.join(', ')}).
+                  </p>
+                  <p className="mt-2 text-amber-800 dark:text-amber-300">
+                    This usually means the carrier doesn&apos;t serve this exact route on
+                    these dates. Try a different origin / destination, shift your dates,
+                    or clear the airline filter to see all available offers.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedAirlines([])
+                      const nextParams = new URLSearchParams(searchParams?.toString() ?? '')
+                      nextParams.delete('airline')
+                      router.replace(`/flight-search?${nextParams.toString()}`, {
+                        scroll: false,
+                      })
+                    }}
+                    className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-orange-500 px-4 py-2 text-sm font-semibold !text-[#ffffff] shadow-sm hover:bg-orange-600"
+                  >
+                    Show all {normalizedOffers.length.toLocaleString()} airlines for this
+                    route
+                  </button>
+                </div>
+              ) : (
+                <div className="rounded-2xl border border-neutral-200 bg-white p-8 text-center text-sm text-neutral-500 dark:border-neutral-800 dark:bg-neutral-900">
+                  No flights match your filters. Try widening price, stops, duration, or
+                  airline selection.
+                </div>
+              )
             ) : (
               <div className="space-y-4">
                 {filteredOffers.slice(0, visibleCount).map((item) => (
