@@ -171,7 +171,7 @@ export default function Footer2() {
         </div>
         <div className="mt-16 flex flex-col items-start gap-4 border-t border-gray-900/10 pt-8 sm:mt-20 sm:flex-row sm:items-center sm:justify-between lg:mt-24 dark:border-gray-700">
           <p className="text-sm/6 text-gray-600 dark:text-neutral-400">
-            &copy; 2026 NXT.DEALS. All rights reserved.
+            &copy; 2026 NXT.DEALS, a trading name of FXN Holdings Limited (company no. 16134139, VAT GB500441452), 61 Bridge Street, Kington, HR5 3DJ, United Kingdom. All rights reserved.
           </p>
           <nav className="flex items-center gap-x-6 text-sm/6">
             <a

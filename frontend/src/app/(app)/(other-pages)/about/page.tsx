@@ -127,6 +127,39 @@ export default function AboutPage() {
         </div>
       </section>
 
+      {/* Company info */}
+      <section className="mt-16">
+        <div className="mx-auto max-w-3xl rounded-2xl border border-neutral-200 bg-white p-6 text-sm text-neutral-600 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-400 sm:p-8">
+          <h2 className="text-base font-bold text-neutral-900 dark:text-neutral-100">
+            Operating entity
+          </h2>
+          <p className="mt-3">
+            NXT.DEALS is a trading name of <strong>FXN Holdings Limited</strong>, a company
+            registered in England and Wales.
+          </p>
+          <dl className="mt-4 grid gap-3 sm:grid-cols-2">
+            <div>
+              <dt className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                Company number
+              </dt>
+              <dd>16134139</dd>
+            </div>
+            <div>
+              <dt className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                VAT number
+              </dt>
+              <dd>GB500441452</dd>
+            </div>
+            <div className="sm:col-span-2">
+              <dt className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                Registered office
+              </dt>
+              <dd>61 Bridge Street, Kington, HR5 3DJ, United Kingdom</dd>
+            </div>
+          </dl>
+        </div>
+      </section>
+
       {/* CTA */}
       <section className="mt-16 text-center">
         <h2 className="text-2xl font-bold text-neutral-900 sm:text-3xl dark:text-neutral-100">

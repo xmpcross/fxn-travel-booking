@@ -36,7 +36,7 @@ export default function TermsPage() {
     <main className="container py-12 lg:py-16">
       <header className="mx-auto max-w-3xl">
         <p className="text-sm font-semibold uppercase tracking-wide text-orange-600">Legal</p>
-        <h1 className="mt-3 text-4xl font-bold tracking-tight text-neutral-900 sm:text-5xl dark:text-neutral-100">
+        <h1 className="mt-3 text-[2rem] font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
           Terms &amp; Conditions
         </h1>
         <p className="mt-3 text-sm text-neutral-500">Last updated: {LAST_UPDATED}</p>
@@ -73,11 +73,11 @@ export default function TermsPage() {
             <h2>1. About these Terms</h2>
             <p>
               NXT.DEALS (&quot;NXT.DEALS&quot;, &quot;we&quot;, &quot;us&quot;) is operated by{' '}
-              <strong>[Operating Entity Legal Name]</strong>, a company registered in{' '}
-              <strong>[Country]</strong> (company number <strong>[Number]</strong>), with its
-              registered office at <strong>[Registered Address]</strong>. References to
-              &quot;you&quot; mean any visitor to the site or person who makes (or is named on) a
-              booking through us.
+              <strong>FXN Holdings Limited</strong>, a company registered in England and Wales
+              (company number <strong>16134139</strong>, VAT <strong>GB500441452</strong>), with
+              its registered office at <strong>61 Bridge Street, Kington, HR5 3DJ, United
+              Kingdom</strong>. References to &quot;you&quot; mean any visitor to the site or
+              person who makes (or is named on) a booking through us.
             </p>
             <p>
               These Terms apply alongside our{' '}
@@ -353,10 +353,10 @@ export default function TermsPage() {
             <p>
               These Terms and any dispute arising out of or in connection with them or the
               services provided through the site are governed by the laws of{' '}
-              <strong>[Governing Law Jurisdiction]</strong>. The courts of{' '}
-              <strong>[Jurisdiction]</strong> have exclusive jurisdiction, except that consumers
-              resident in the EU / EEA may also bring proceedings in the courts of their country
-              of residence to the extent required by mandatory local law.
+              <strong>England and Wales</strong>. The courts of <strong>England and Wales</strong>{' '}
+              have exclusive jurisdiction, except that consumers resident in the EU / EEA may also
+              bring proceedings in the courts of their country of residence to the extent required
+              by mandatory local law.
             </p>
           </section>
 
@@ -365,9 +365,9 @@ export default function TermsPage() {
             <p>
               Questions about these Terms can be sent to:
               <br />
-              <strong>[Operating Entity Legal Name]</strong>
+              <strong>FXN Holdings Limited</strong>
               <br />
-              <strong>[Registered Address]</strong>
+              61 Bridge Street, Kington, HR5 3DJ, United Kingdom
               <br />
               Email: <a href="mailto:legal@nxt.deals">legal@nxt.deals</a>
             </p>

@@ -37,13 +37,13 @@ const CONTACT_DETAILS = [
   },
   {
     label: 'Hours',
-    value: 'Mon–Fri · 9am – 6pm AEST',
+    value: 'Mon–Fri · 9am – 6pm GMT',
     href: null as string | null,
     icon: ClockIcon,
   },
   {
     label: 'Address',
-    value: 'Sydney, Australia',
+    value: '61 Bridge Street, Kington, HR5 3DJ, United Kingdom',
     href: null as string | null,
     icon: MapPinIcon,
   },

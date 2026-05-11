@@ -30,7 +30,7 @@ export default function PrivacyPolicyPage() {
     <main className="container py-12 lg:py-16">
       <header className="mx-auto max-w-3xl">
         <p className="text-sm font-semibold uppercase tracking-wide text-orange-600">Legal</p>
-        <h1 className="mt-3 text-4xl font-bold tracking-tight text-neutral-900 sm:text-5xl dark:text-neutral-100">
+        <h1 className="mt-3 text-[2rem] font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
           Privacy Policy
         </h1>
         <p className="mt-3 text-sm text-neutral-500">Last updated: {LAST_UPDATED}</p>
@@ -67,11 +67,11 @@ export default function PrivacyPolicyPage() {
             <h2>1. Who we are</h2>
             <p>
               NXT.DEALS is a travel comparison and booking platform operated by{' '}
-              <strong>[Operating Entity Legal Name]</strong>, a company registered in{' '}
-              <strong>[Country]</strong> (company number <strong>[Number]</strong>), with its
-              registered office at <strong>[Registered Address]</strong>. For the purposes of UK
-              GDPR and the EU GDPR, we are the data controller of the personal data we collect
-              about you through this website.
+              <strong>FXN Holdings Limited</strong>, a company registered in England and Wales
+              (company number <strong>16134139</strong>, VAT <strong>GB500441452</strong>), with
+              its registered office at <strong>61 Bridge Street, Kington, HR5 3DJ, United
+              Kingdom</strong>. For the purposes of UK GDPR and the EU GDPR, we are the data
+              controller of the personal data we collect about you through this website.
             </p>
             <p>
               You can reach our privacy team at{' '}
@@ -327,9 +327,9 @@ export default function PrivacyPolicyPage() {
             <p>
               For any privacy-related question or to exercise your rights, please contact:
               <br />
-              <strong>[Operating Entity Legal Name]</strong>
+              <strong>FXN Holdings Limited</strong>
               <br />
-              <strong>[Registered Address]</strong>
+              61 Bridge Street, Kington, HR5 3DJ, United Kingdom
               <br />
               Email: <a href="mailto:privacy@nxt.deals">privacy@nxt.deals</a>
             </p>
