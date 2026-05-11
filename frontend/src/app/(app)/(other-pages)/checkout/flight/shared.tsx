@@ -834,13 +834,13 @@ function AirlinePill({
       <button
         type="button"
         onClick={() => setOpen((x) => !x)}
-        className="inline-flex items-center gap-2 rounded-full bg-orange-50 px-3 py-1.5 text-xs font-semibold text-orange-700 hover:bg-orange-100 dark:bg-orange-950/40 dark:text-orange-300"
+        className="inline-flex items-center gap-2 rounded-full bg-orange-50 py-1 pl-1 pr-3 text-[11px] font-semibold text-orange-700 hover:bg-orange-100 dark:bg-orange-950/40 dark:text-orange-300"
       >
         {carrierLogo ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={carrierLogo} alt="" className="size-4 rounded-full bg-white" />
+          <img src={carrierLogo} alt="" className="size-7 rounded-full bg-white" />
         ) : (
-          <span className="inline-block size-4 rounded-full bg-orange-500" />
+          <span className="inline-block size-7 rounded-full bg-orange-500" />
         )}
         <span>{carrierName}</span>
         <ChevronDownIcon
