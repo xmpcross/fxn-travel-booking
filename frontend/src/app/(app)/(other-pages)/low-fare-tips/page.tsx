@@ -140,7 +140,7 @@ export default function LowFareTipsPage() {
         </nav>
 
         {/* Hero */}
-        <header className="mx-auto max-w-3xl text-center">
+        <header>
           <p className="text-sm font-semibold uppercase tracking-wide text-orange-600">
             Cheap flight guide
           </p>
@@ -152,7 +152,7 @@ export default function LowFareTipsPage() {
             book, when to fly, which airports to consider, and how to make the search engine work
             for you instead of against you.
           </p>
-          <div className="mt-6 flex flex-wrap justify-center gap-3">
+          <div className="mt-6 flex flex-wrap gap-3">
             <Link
               href="/flight-search"
               className="inline-flex items-center gap-1.5 rounded-full bg-orange-500 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-orange-600"
@@ -164,7 +164,7 @@ export default function LowFareTipsPage() {
         </header>
 
         {/* Quick rules */}
-        <section className="mx-auto mt-10 max-w-4xl">
+        <section className="mt-10">
           <h2 className="text-base font-bold text-neutral-900 dark:text-neutral-100">
             Quick rules of thumb
           </h2>
@@ -194,7 +194,7 @@ export default function LowFareTipsPage() {
         </section>
 
         {/* Tips list */}
-        <section className="mx-auto mt-12 max-w-3xl">
+        <section className="mt-12">
           <ol className="space-y-8">
             {TIPS.map((tip, idx) => (
               <li
@@ -223,7 +223,7 @@ export default function LowFareTipsPage() {
         </section>
 
         {/* CTA */}
-        <section className="mx-auto mt-12 max-w-3xl rounded-2xl border border-neutral-200 bg-white p-6 text-center dark:border-neutral-800 dark:bg-neutral-900 sm:p-8">
+        <section className="mt-12 rounded-2xl border border-neutral-200 bg-white p-6 text-center dark:border-neutral-800 dark:bg-neutral-900 sm:p-8">
           <h2 className="text-lg font-bold text-neutral-900 dark:text-neutral-100">
             Ready to put these to work?
           </h2>

@@ -123,19 +123,19 @@ export default function AdvertisePage() {
       {/* Hero */}
       <section className="relative overflow-hidden bg-gradient-to-br from-orange-50 via-white to-white dark:from-orange-950/30 dark:via-neutral-950 dark:to-neutral-950">
         <div className="container py-16 lg:py-24">
-          <div className="mx-auto max-w-3xl text-center">
+          <div>
             <p className="text-sm font-semibold uppercase tracking-wide text-orange-600">
               Advertise with NXT.DEALS
             </p>
             <h1 className="mt-4 text-[2.25rem] font-bold tracking-tight text-neutral-900 sm:text-5xl dark:text-neutral-100">
               Making great trips happen.
             </h1>
-            <p className="mx-auto mt-6 max-w-2xl text-base text-neutral-600 sm:text-lg dark:text-neutral-400">
+            <p className="mt-6 max-w-2xl text-base text-neutral-600 sm:text-lg dark:text-neutral-400">
               NXT.DEALS is where travellers find better trips — and where smart brands bring
               campaigns to life with bold creative, solid strategy, and insights that reach a
               ready-to-book audience.
             </p>
-            <div className="mt-8 flex flex-wrap justify-center gap-3">
+            <div className="mt-8 flex flex-wrap gap-3">
               <a
                 href="#contact"
                 className="inline-flex items-center gap-1.5 rounded-full bg-orange-500 px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-orange-600"
@@ -156,7 +156,7 @@ export default function AdvertisePage() {
 
       {/* Trust */}
       <section className="container mt-16 lg:mt-20">
-        <div className="mx-auto max-w-3xl text-center">
+        <div className="text-center">
           <h2 className="text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
             We work with the best.
           </h2>
@@ -232,7 +232,7 @@ export default function AdvertisePage() {
 
       {/* Products */}
       <section id="products" className="container mt-16 lg:mt-20">
-        <div className="mx-auto max-w-3xl text-center">
+        <div className="text-center">
           <h2 className="text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
             A full spectrum of solutions.
           </h2>
@@ -243,7 +243,7 @@ export default function AdvertisePage() {
           </p>
         </div>
 
-        <div className="mx-auto mt-10 grid max-w-5xl gap-5 sm:grid-cols-2">
+        <div className="mt-10 grid gap-5 sm:grid-cols-2">
           {PRODUCTS.map((p) => (
             <div
               key={p.title}
@@ -275,7 +275,7 @@ export default function AdvertisePage() {
 
       {/* Value pillars */}
       <section className="container mt-16 lg:mt-20">
-        <div className="mx-auto max-w-3xl text-center">
+        <div className="text-center">
           <h2 className="text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
             Why team up with us.
           </h2>
@@ -286,7 +286,7 @@ export default function AdvertisePage() {
           </p>
         </div>
 
-        <div className="mx-auto mt-10 grid max-w-5xl gap-5 sm:grid-cols-3">
+        <div className="mt-10 grid gap-5 sm:grid-cols-3">
           {PILLARS.map((p) => (
             <div
               key={p.title}
@@ -308,7 +308,7 @@ export default function AdvertisePage() {
 
       {/* Contact form */}
       <section id="contact" className="container mt-16 lg:mt-20">
-        <div className="mx-auto max-w-3xl rounded-3xl bg-white p-8 shadow-sm dark:bg-neutral-900 sm:p-10">
+        <div className="mx-auto rounded-3xl bg-white p-8 shadow-sm dark:bg-neutral-900 sm:p-10">
           <div className="text-center">
             <div className="inline-flex size-10 items-center justify-center rounded-full bg-orange-100 text-orange-600 dark:bg-orange-950/40 dark:text-orange-300">
               <ChatBubbleLeftRightIcon className="size-5" />
@@ -440,7 +440,7 @@ export default function AdvertisePage() {
           )}
         </div>
 
-        <p className="mx-auto mt-6 max-w-3xl text-center text-xs text-neutral-500">
+        <p className="mt-6 text-center text-xs text-neutral-500">
           NXT.DEALS is a trading name of FXN Holdings Limited.{' '}
           <Link href="/privacy" className="underline hover:text-orange-600">
             Privacy
