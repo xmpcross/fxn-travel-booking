@@ -7,6 +7,12 @@ import { RoutesFromYourCity } from '@/components/RoutesFromYourCity'
 import { getAirlineSupplement } from '@/data/airlineSupplement'
 import { findAirlineByCode, listAllAirlines, type Airline } from '@/lib/duffel'
 
+const ALLIANCE_SITES: Record<string, string> = {
+  'Star Alliance': 'https://www.staralliance.com/',
+  oneworld: 'https://www.oneworld.com/',
+  SkyTeam: 'https://www.skyteam.com/',
+}
+
 
 export const revalidate = 86_400
 
@@ -160,7 +166,18 @@ export default async function AirlineDetailPage({
                       Alliance
                     </dt>
                     <dd className="font-medium text-neutral-900 dark:text-neutral-100">
-                      {supplement.alliance}
+                      {ALLIANCE_SITES[supplement.alliance] ? (
+                        <a
+                          href={ALLIANCE_SITES[supplement.alliance]}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="hover:underline"
+                        >
+                          {supplement.alliance}
+                        </a>
+                      ) : (
+                        supplement.alliance
+                      )}
                     </dd>
                   </>
                 ) : null}

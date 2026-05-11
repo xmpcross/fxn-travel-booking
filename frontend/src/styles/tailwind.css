@@ -138,6 +138,14 @@
     font-size: 1.2rem !important;
     line-height: 1.25 !important;
   }
+
+  /* External http(s) links default to the brand primary colour. Wrapped
+     in :where() to keep specificity at 0 — any explicit Tailwind
+     text-* / !text-[…] / button class on the element still wins, so
+     white-on-blue CTAs and orange link styling are unaffected. */
+  :where(a[href^="http://"], a[href^="https://"]) {
+    color: var(--colorBgPrimaryEmphasis);
+  }
 }
 
 @utility container {
