@@ -18,12 +18,41 @@
 
 export type AirlineAlliance = 'Star Alliance' | 'oneworld' | 'SkyTeam'
 
+export type CabinClass = 'Economy' | 'Premium Economy' | 'Business' | 'First'
+
 export type AirlineSupplement = {
   alliance?: AirlineAlliance
   hubs?: Array<{ iata: string; name: string }>
   founded?: number
   country?: string
   headquarters?: string
+  // ----- New fields (additional facts, enriched from originfacts.com
+  // where applicable). Everything is optional so rendering degrades
+  // gracefully for airlines without curated data. -----
+  /** 3-letter ICAO airline code (e.g. "QFA" for Qantas). */
+  icao?: string
+  /** Radio callsign (e.g. "Qantas", "Speedbird"). */
+  callsign?: string
+  /** Homepage URL without protocol prefix (e.g. "qantas.com"). */
+  website?: string
+  /** Frequent-flyer programme name (e.g. "Qantas Frequent Flyer", "Skywards"). */
+  loyaltyProgramme?: string
+  /** Cabin classes the airline regularly sells. */
+  cabinClasses?: CabinClass[]
+  /** Approximate fleet size (aircraft count). */
+  fleetSize?: number
+  /** Aircraft families flown (e.g. ["Airbus A380", "Boeing 787"]). */
+  fleetTypes?: string[]
+  /** Major codeshare / partner airline IATA codes. */
+  partners?: string[]
+  /** Subsidiary airlines / brands. */
+  subsidiaries?: Array<{ name: string; iata?: string }>
+  /**
+   * Optional originfacts.com slug. When present, the detail page renders a
+   * "Read more" link to https://www.originfacts.com/airlines/{slug}. Defaults
+   * to the airline name lowercased with hyphens if not specified.
+   */
+  originFactsSlug?: string
 }
 
 const SUPPLEMENTS: Record<string, AirlineSupplement> = {
@@ -37,6 +66,20 @@ const SUPPLEMENTS: Record<string, AirlineSupplement> = {
     founded: 1955,
     country: 'Germany',
     headquarters: 'Cologne',
+    icao: 'DLH',
+    callsign: 'Lufthansa',
+    website: 'lufthansa.com',
+    loyaltyProgramme: 'Miles & More',
+    cabinClasses: ['Economy', 'Premium Economy', 'Business', 'First'],
+    fleetSize: 280,
+    fleetTypes: ['Airbus A320 family', 'Airbus A330', 'Airbus A340', 'Airbus A350', 'Airbus A380', 'Boeing 747', 'Boeing 787'],
+    partners: ['UA', 'AC', 'SQ', 'NH', 'TK', 'TG'],
+    subsidiaries: [
+      { name: 'Swiss', iata: 'LX' },
+      { name: 'Austrian Airlines', iata: 'OS' },
+      { name: 'Brussels Airlines', iata: 'SN' },
+      { name: 'Eurowings', iata: 'EW' },
+    ],
   },
   UA: {
     alliance: 'Star Alliance',
@@ -48,6 +91,14 @@ const SUPPLEMENTS: Record<string, AirlineSupplement> = {
     founded: 1926,
     country: 'United States',
     headquarters: 'Chicago, IL',
+    icao: 'UAL',
+    callsign: 'United',
+    website: 'united.com',
+    loyaltyProgramme: 'MileagePlus',
+    cabinClasses: ['Economy', 'Premium Economy', 'Business', 'First'],
+    fleetSize: 950,
+    fleetTypes: ['Airbus A319', 'Airbus A320', 'Boeing 737 MAX', 'Boeing 757', 'Boeing 767', 'Boeing 777', 'Boeing 787'],
+    partners: ['LH', 'AC', 'SQ', 'NH', 'NZ'],
   },
   AC: {
     alliance: 'Star Alliance',
@@ -69,6 +120,14 @@ const SUPPLEMENTS: Record<string, AirlineSupplement> = {
     founded: 1952,
     country: 'Japan',
     headquarters: 'Tokyo',
+    icao: 'ANA',
+    callsign: 'All Nippon',
+    website: 'ana.co.jp',
+    loyaltyProgramme: 'ANA Mileage Club',
+    cabinClasses: ['Economy', 'Premium Economy', 'Business', 'First'],
+    fleetSize: 215,
+    fleetTypes: ['Airbus A320 family', 'Airbus A380', 'Boeing 737', 'Boeing 777', 'Boeing 787'],
+    partners: ['UA', 'LH', 'SQ', 'AC'],
   },
   SQ: {
     alliance: 'Star Alliance',
@@ -76,6 +135,17 @@ const SUPPLEMENTS: Record<string, AirlineSupplement> = {
     founded: 1972,
     country: 'Singapore',
     headquarters: 'Singapore',
+    icao: 'SIA',
+    callsign: 'Singapore',
+    website: 'singaporeair.com',
+    loyaltyProgramme: 'KrisFlyer',
+    cabinClasses: ['Economy', 'Premium Economy', 'Business', 'First'],
+    fleetSize: 145,
+    fleetTypes: ['Airbus A350', 'Airbus A380', 'Boeing 777', 'Boeing 787'],
+    partners: ['UA', 'NH', 'LH', 'AC', 'VS'],
+    subsidiaries: [
+      { name: 'Scoot', iata: 'TR' },
+    ],
   },
   TG: {
     alliance: 'Star Alliance',
@@ -90,6 +160,14 @@ const SUPPLEMENTS: Record<string, AirlineSupplement> = {
     founded: 1933,
     country: 'Türkiye',
     headquarters: 'Istanbul',
+    icao: 'THY',
+    callsign: 'Turkair',
+    website: 'turkishairlines.com',
+    loyaltyProgramme: 'Miles&Smiles',
+    cabinClasses: ['Economy', 'Business'],
+    fleetSize: 440,
+    fleetTypes: ['Airbus A319/320/321', 'Airbus A330', 'Airbus A350', 'Boeing 737', 'Boeing 777', 'Boeing 787'],
+    partners: ['UA', 'LH', 'SQ', 'NH'],
   },
   NZ: {
     alliance: 'Star Alliance',
@@ -97,6 +175,14 @@ const SUPPLEMENTS: Record<string, AirlineSupplement> = {
     founded: 1940,
     country: 'New Zealand',
     headquarters: 'Auckland',
+    icao: 'ANZ',
+    callsign: 'New Zealand',
+    website: 'airnewzealand.com',
+    loyaltyProgramme: 'Airpoints',
+    cabinClasses: ['Economy', 'Premium Economy', 'Business'],
+    fleetSize: 105,
+    fleetTypes: ['Airbus A320 family', 'Airbus A321neo', 'Boeing 787-9', 'ATR 72'],
+    partners: ['UA', 'AC', 'SQ', 'NH'],
   },
   OZ: {
     alliance: 'Star Alliance',
@@ -191,6 +277,14 @@ const SUPPLEMENTS: Record<string, AirlineSupplement> = {
     founded: 1930,
     country: 'United States',
     headquarters: 'Fort Worth, TX',
+    icao: 'AAL',
+    callsign: 'American',
+    website: 'aa.com',
+    loyaltyProgramme: 'AAdvantage',
+    cabinClasses: ['Economy', 'Premium Economy', 'Business', 'First'],
+    fleetSize: 970,
+    fleetTypes: ['Airbus A319', 'Airbus A320', 'Airbus A321', 'Boeing 737', 'Boeing 777', 'Boeing 787'],
+    partners: ['BA', 'CX', 'QF', 'JL', 'IB'],
   },
   BA: {
     alliance: 'oneworld',
@@ -201,6 +295,14 @@ const SUPPLEMENTS: Record<string, AirlineSupplement> = {
     founded: 1974,
     country: 'United Kingdom',
     headquarters: 'London',
+    icao: 'BAW',
+    callsign: 'Speedbird',
+    website: 'britishairways.com',
+    loyaltyProgramme: 'British Airways Executive Club',
+    cabinClasses: ['Economy', 'Premium Economy', 'Business', 'First'],
+    fleetSize: 280,
+    fleetTypes: ['Airbus A320 family', 'Airbus A350', 'Airbus A380', 'Boeing 777', 'Boeing 787'],
+    partners: ['AA', 'IB', 'QF', 'CX', 'JL'],
   },
   QF: {
     alliance: 'oneworld',
@@ -211,6 +313,18 @@ const SUPPLEMENTS: Record<string, AirlineSupplement> = {
     founded: 1920,
     country: 'Australia',
     headquarters: 'Sydney',
+    icao: 'QFA',
+    callsign: 'Qantas',
+    website: 'qantas.com',
+    loyaltyProgramme: 'Qantas Frequent Flyer',
+    cabinClasses: ['Economy', 'Premium Economy', 'Business', 'First'],
+    fleetSize: 130,
+    fleetTypes: ['Airbus A330', 'Airbus A380', 'Boeing 737', 'Boeing 787-9'],
+    partners: ['BA', 'CX', 'AA', 'JL', 'EK'],
+    subsidiaries: [
+      { name: 'QantasLink' },
+      { name: 'Jetstar', iata: 'JQ' },
+    ],
   },
   JL: {
     alliance: 'oneworld',
@@ -221,6 +335,14 @@ const SUPPLEMENTS: Record<string, AirlineSupplement> = {
     founded: 1951,
     country: 'Japan',
     headquarters: 'Tokyo',
+    icao: 'JAL',
+    callsign: 'Japan Air',
+    website: 'jal.co.jp',
+    loyaltyProgramme: 'JAL Mileage Bank',
+    cabinClasses: ['Economy', 'Premium Economy', 'Business', 'First'],
+    fleetSize: 165,
+    fleetTypes: ['Airbus A350', 'Boeing 737', 'Boeing 767', 'Boeing 777', 'Boeing 787'],
+    partners: ['BA', 'AA', 'QF', 'CX', 'IB'],
   },
   CX: {
     alliance: 'oneworld',
@@ -228,6 +350,14 @@ const SUPPLEMENTS: Record<string, AirlineSupplement> = {
     founded: 1946,
     country: 'Hong Kong',
     headquarters: 'Hong Kong',
+    icao: 'CPA',
+    callsign: 'Cathay',
+    website: 'cathaypacific.com',
+    loyaltyProgramme: 'Cathay (Asia Miles)',
+    cabinClasses: ['Economy', 'Premium Economy', 'Business', 'First'],
+    fleetSize: 180,
+    fleetTypes: ['Airbus A330', 'Airbus A350', 'Boeing 777', 'Boeing 747F'],
+    partners: ['BA', 'AA', 'QF', 'JL'],
   },
   IB: {
     alliance: 'oneworld',
@@ -260,6 +390,14 @@ const SUPPLEMENTS: Record<string, AirlineSupplement> = {
     founded: 1993,
     country: 'Qatar',
     headquarters: 'Doha',
+    icao: 'QTR',
+    callsign: 'Qatari',
+    website: 'qatarairways.com',
+    loyaltyProgramme: 'Privilege Club',
+    cabinClasses: ['Economy', 'Business', 'First'],
+    fleetSize: 230,
+    fleetTypes: ['Airbus A320 family', 'Airbus A350', 'Airbus A380', 'Boeing 777', 'Boeing 787'],
+    partners: ['BA', 'AA', 'CX', 'IB', 'JL'],
   },
   AS: {
     alliance: 'oneworld',
@@ -311,6 +449,14 @@ const SUPPLEMENTS: Record<string, AirlineSupplement> = {
     founded: 1928,
     country: 'United States',
     headquarters: 'Atlanta, GA',
+    icao: 'DAL',
+    callsign: 'Delta',
+    website: 'delta.com',
+    loyaltyProgramme: 'SkyMiles',
+    cabinClasses: ['Economy', 'Premium Economy', 'Business', 'First'],
+    fleetSize: 980,
+    fleetTypes: ['Airbus A220', 'Airbus A319/320/321', 'Airbus A330', 'Airbus A350', 'Boeing 717', 'Boeing 737', 'Boeing 757', 'Boeing 767'],
+    partners: ['AF', 'KL', 'KE', 'VS', 'AM'],
   },
   AF: {
     alliance: 'SkyTeam',
@@ -318,6 +464,14 @@ const SUPPLEMENTS: Record<string, AirlineSupplement> = {
     founded: 1933,
     country: 'France',
     headquarters: 'Tremblay-en-France',
+    icao: 'AFR',
+    callsign: 'Airfrans',
+    website: 'airfrance.com',
+    loyaltyProgramme: 'Flying Blue',
+    cabinClasses: ['Economy', 'Premium Economy', 'Business', 'First'],
+    fleetSize: 215,
+    fleetTypes: ['Airbus A220', 'Airbus A320 family', 'Airbus A330', 'Airbus A350', 'Boeing 777', 'Boeing 787'],
+    partners: ['KL', 'DL', 'KE', 'VS'],
   },
   KL: {
     alliance: 'SkyTeam',
@@ -325,6 +479,14 @@ const SUPPLEMENTS: Record<string, AirlineSupplement> = {
     founded: 1919,
     country: 'Netherlands',
     headquarters: 'Amstelveen',
+    icao: 'KLM',
+    callsign: 'KLM',
+    website: 'klm.com',
+    loyaltyProgramme: 'Flying Blue',
+    cabinClasses: ['Economy', 'Premium Economy', 'Business'],
+    fleetSize: 110,
+    fleetTypes: ['Airbus A330', 'Boeing 737', 'Boeing 777', 'Boeing 787', 'Embraer 175/190'],
+    partners: ['AF', 'DL', 'KE', 'VS'],
   },
   MU: {
     alliance: 'SkyTeam',
@@ -402,12 +564,28 @@ const SUPPLEMENTS: Record<string, AirlineSupplement> = {
     founded: 1985,
     country: 'United Arab Emirates',
     headquarters: 'Dubai',
+    icao: 'UAE',
+    callsign: 'Emirates',
+    website: 'emirates.com',
+    loyaltyProgramme: 'Skywards',
+    cabinClasses: ['Economy', 'Premium Economy', 'Business', 'First'],
+    fleetSize: 250,
+    fleetTypes: ['Airbus A380', 'Boeing 777-300ER', 'Boeing 777-200LR', 'Airbus A350'],
+    partners: ['QF', 'JL', 'KE', 'AS'],
   },
   EY: {
     hubs: [{ iata: 'AUH', name: 'Abu Dhabi' }],
     founded: 2003,
     country: 'United Arab Emirates',
     headquarters: 'Abu Dhabi',
+    icao: 'ETD',
+    callsign: 'Etihad',
+    website: 'etihad.com',
+    loyaltyProgramme: 'Etihad Guest',
+    cabinClasses: ['Economy', 'Business', 'First'],
+    fleetSize: 90,
+    fleetTypes: ['Airbus A320', 'Airbus A321neo', 'Airbus A350', 'Boeing 777', 'Boeing 787'],
+    partners: ['AA', 'VA', 'AF', 'KL'],
   },
   FR: {
     hubs: [

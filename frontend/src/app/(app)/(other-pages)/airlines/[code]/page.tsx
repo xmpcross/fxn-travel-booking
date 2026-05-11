@@ -6,6 +6,14 @@ import { notFound } from 'next/navigation'
 import { getAirlineSupplement } from '@/data/airlineSupplement'
 import { findAirlineByCode } from '@/lib/duffel'
 
+function originFactsSlug(name: string, override?: string): string {
+  if (override) return override
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+}
+
 export const revalidate = 86_400
 
 export async function generateMetadata({
@@ -163,6 +171,43 @@ export default async function AirlineDetailPage({
                     </dd>
                   </>
                 ) : null}
+                {supplement.icao ? (
+                  <>
+                    <dt className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                      ICAO code
+                    </dt>
+                    <dd className="font-mono font-medium text-neutral-900 dark:text-neutral-100">
+                      {supplement.icao}
+                    </dd>
+                  </>
+                ) : null}
+                {supplement.callsign ? (
+                  <>
+                    <dt className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                      Callsign
+                    </dt>
+                    <dd className="font-medium text-neutral-900 dark:text-neutral-100">
+                      {supplement.callsign}
+                    </dd>
+                  </>
+                ) : null}
+                {supplement.website ? (
+                  <>
+                    <dt className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                      Website
+                    </dt>
+                    <dd className="truncate text-neutral-900 dark:text-neutral-100">
+                      <a
+                        href={`https://${supplement.website}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-medium text-orange-600 hover:underline dark:text-orange-400"
+                      >
+                        {supplement.website}
+                      </a>
+                    </dd>
+                  </>
+                ) : null}
                 {supplement.hubs && supplement.hubs.length > 0 ? (
                   <>
                     <dt className="col-span-2 mt-2 text-xs font-semibold uppercase tracking-wide text-neutral-500">
@@ -226,6 +271,150 @@ export default async function AirlineDetailPage({
               and toggle the airline filter once results load.
             </p>
           </div>
+        </section>
+
+        {/* Extended supplement: only renders when we have curated data */}
+        {supplement &&
+        (supplement.loyaltyProgramme ||
+          supplement.cabinClasses?.length ||
+          supplement.fleetSize ||
+          supplement.fleetTypes?.length ||
+          supplement.partners?.length ||
+          supplement.subsidiaries?.length) ? (
+          <section className="mt-4 grid gap-4 lg:grid-cols-3">
+            {supplement.loyaltyProgramme || supplement.cabinClasses?.length ? (
+              <div className="rounded-2xl border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
+                <h2 className="text-base font-bold text-neutral-900 dark:text-neutral-100">
+                  Loyalty &amp; cabins
+                </h2>
+                {supplement.loyaltyProgramme ? (
+                  <div className="mt-3">
+                    <div className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                      Frequent-flyer programme
+                    </div>
+                    <div className="mt-1 text-sm font-medium text-neutral-900 dark:text-neutral-100">
+                      {supplement.loyaltyProgramme}
+                    </div>
+                  </div>
+                ) : null}
+                {supplement.cabinClasses?.length ? (
+                  <div className="mt-4">
+                    <div className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                      Cabin classes
+                    </div>
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {supplement.cabinClasses.map((c) => (
+                        <span
+                          key={c}
+                          className="inline-flex items-center rounded-md bg-orange-50 px-2.5 py-1 text-xs font-semibold text-orange-700 dark:bg-orange-950/40 dark:text-orange-300"
+                        >
+                          {c}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+
+            {supplement.fleetSize || supplement.fleetTypes?.length ? (
+              <div className="rounded-2xl border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
+                <h2 className="text-base font-bold text-neutral-900 dark:text-neutral-100">
+                  Fleet
+                </h2>
+                {supplement.fleetSize ? (
+                  <div className="mt-3">
+                    <div className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                      Approximate size
+                    </div>
+                    <div className="mt-1 text-sm font-medium text-neutral-900 dark:text-neutral-100">
+                      {supplement.fleetSize.toLocaleString()} aircraft
+                    </div>
+                  </div>
+                ) : null}
+                {supplement.fleetTypes?.length ? (
+                  <div className="mt-4">
+                    <div className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                      Aircraft types
+                    </div>
+                    <ul className="mt-2 space-y-1 text-sm text-neutral-700 dark:text-neutral-300">
+                      {supplement.fleetTypes.map((t) => (
+                        <li key={t}>• {t}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+
+            {supplement.partners?.length || supplement.subsidiaries?.length ? (
+              <div className="rounded-2xl border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
+                <h2 className="text-base font-bold text-neutral-900 dark:text-neutral-100">
+                  Partners &amp; subsidiaries
+                </h2>
+                {supplement.partners?.length ? (
+                  <div className="mt-3">
+                    <div className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                      Codeshare partners
+                    </div>
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {supplement.partners.map((p) => (
+                        <Link
+                          key={p}
+                          href={`/airlines/${encodeURIComponent(p)}`}
+                          className="inline-flex items-center rounded-md bg-neutral-100 px-2.5 py-1 font-mono text-xs font-semibold text-neutral-700 hover:bg-orange-100 hover:text-orange-700 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-orange-950/40 dark:hover:text-orange-300"
+                        >
+                          {p}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+                {supplement.subsidiaries?.length ? (
+                  <div className="mt-4">
+                    <div className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                      Subsidiaries
+                    </div>
+                    <ul className="mt-2 space-y-1 text-sm text-neutral-700 dark:text-neutral-300">
+                      {supplement.subsidiaries.map((s) => (
+                        <li key={`${s.name}-${s.iata ?? ''}`}>
+                          {s.iata ? (
+                            <Link
+                              href={`/airlines/${encodeURIComponent(s.iata)}`}
+                              className="hover:text-orange-600 dark:hover:text-orange-400"
+                            >
+                              {s.name}{' '}
+                              <span className="font-mono text-xs text-neutral-500">
+                                ({s.iata})
+                              </span>
+                            </Link>
+                          ) : (
+                            s.name
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+          </section>
+        ) : null}
+
+        {/* Read more on Origin Facts */}
+        <section className="mt-4">
+          <a
+            href={`https://www.originfacts.com/airlines/${originFactsSlug(
+              airline.name,
+              supplement?.originFactsSlug,
+            )}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 text-sm font-semibold text-orange-600 hover:underline dark:text-orange-400"
+          >
+            Read more about {airline.name} on Origin Facts
+            <ArrowTopRightOnSquareIcon className="size-4" />
+          </a>
         </section>
       </div>
     </main>
