@@ -348,8 +348,29 @@ export default async function AirlineDetailPage({
                       Frequent-flyer programme
                     </div>
                     <div className="mt-1 text-sm font-medium text-neutral-900 dark:text-neutral-100">
-                      {supplement.loyaltyProgramme}
+                      {supplement.loyaltyProgrammeUrl ? (
+                        <a
+                          href={supplement.loyaltyProgrammeUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="hover:underline"
+                        >
+                          {supplement.loyaltyProgramme}
+                        </a>
+                      ) : (
+                        supplement.loyaltyProgramme
+                      )}
                     </div>
+                    {supplement.loyaltyProgrammeUrl ? (
+                      <a
+                        href={supplement.loyaltyProgrammeUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-2 inline-flex items-center gap-1 text-xs font-semibold hover:underline"
+                      >
+                        Sign up / manage account →
+                      </a>
+                    ) : null}
                   </div>
                 ) : null}
                 {supplement.cabinClasses?.length ? (
