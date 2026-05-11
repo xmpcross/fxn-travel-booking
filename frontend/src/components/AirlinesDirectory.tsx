@@ -8,42 +8,49 @@ import type { Airline } from '@/lib/duffel'
 
 const PAGE_SIZE = 60
 
-export function AirlinesDirectory({ airlines }: { airlines: Airline[] }) {
+export function AirlinesDirectory({ top, all }: { top: Airline[]; all: Airline[] }) {
   const [query, setQuery] = useState('')
   const [letter, setLetter] = useState<string | null>(null)
   const [visible, setVisible] = useState(PAGE_SIZE)
 
-  // Sort once, alphabetical by name. Duffel returns by id which is meaningless.
-  const sorted = useMemo(
-    () => [...airlines].sort((a, b) => a.name.localeCompare(b.name)),
-    [airlines],
+  // Alphabetise both buckets up front. Duffel returns by internal id which
+  // is meaningless to users.
+  const topSorted = useMemo(
+    () => [...top].sort((a, b) => a.name.localeCompare(b.name)),
+    [top],
+  )
+  const allSorted = useMemo(
+    () => [...all].sort((a, b) => a.name.localeCompare(b.name)),
+    [all],
   )
 
-  const filtered = useMemo(() => {
+  const matchesQuery = (a: Airline) => {
     const q = query.trim().toLowerCase()
-    return sorted.filter((a) => {
-      if (letter) {
-        const first = (a.name[0] ?? '').toUpperCase()
-        if (first !== letter) return false
-      }
-      if (!q) return true
-      return (
-        a.name.toLowerCase().includes(q) ||
-        (a.iata_code ?? '').toLowerCase().includes(q)
-      )
-    })
-  }, [sorted, query, letter])
+    if (letter) {
+      const first = (a.name[0] ?? '').toUpperCase()
+      if (first !== letter) return false
+    }
+    if (!q) return true
+    return (
+      a.name.toLowerCase().includes(q) ||
+      (a.iata_code ?? '').toLowerCase().includes(q)
+    )
+  }
+
+  const topFiltered = useMemo(() => topSorted.filter(matchesQuery), [topSorted, query, letter])
+  const allFiltered = useMemo(() => allSorted.filter(matchesQuery), [allSorted, query, letter])
 
   const letters = useMemo(() => {
     const set = new Set<string>()
-    for (const a of sorted) {
+    for (const a of allSorted) {
       const first = (a.name[0] ?? '').toUpperCase()
       if (first.match(/[A-Z]/)) set.add(first)
     }
     return Array.from(set).sort()
-  }, [sorted])
+  }, [allSorted])
 
-  const shown = filtered.slice(0, visible)
+  const allShown = allFiltered.slice(0, visible)
+  const searchActive = query.trim().length > 0 || letter !== null
 
   return (
     <main className="bg-neutral-50 pb-16 dark:bg-neutral-950">
@@ -51,12 +58,11 @@ export function AirlinesDirectory({ airlines }: { airlines: Airline[] }) {
         <header className="text-center">
           <p className="text-sm font-semibold uppercase tracking-wide text-orange-600">Airlines</p>
           <h1 className="mt-3 text-[2rem] font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
-            Top airlines
+            Airline directory
           </h1>
           <p className="mx-auto mt-3 max-w-3xl text-sm text-neutral-600 dark:text-neutral-400">
-            The {sorted.length} major commercial carriers available through our flight search. Tap
-            an airline to view its alliance, hubs, conditions of carriage, and find flights
-            operated by it.
+            {allSorted.length.toLocaleString()} airlines available through our flight search. Tap
+            an airline to view its conditions of carriage and find flights operated by it.
           </p>
         </header>
 
@@ -112,70 +118,100 @@ export function AirlinesDirectory({ airlines }: { airlines: Airline[] }) {
           ))}
         </div>
 
-        <p className="mt-6 text-center text-sm text-neutral-500">
-          Showing {Math.min(shown.length, filtered.length).toLocaleString()} of{' '}
-          {filtered.length.toLocaleString()}
-        </p>
-
-        {/* Grid — 4 per row on lg+, 2 on sm, 1 on mobile */}
-        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {shown.map((a) => {
-            const slug = a.iata_code ?? a.id
-            const logo = a.logo_lockup_url ?? a.logo_symbol_url
-            return (
-              <Link
-                key={a.id}
-                href={`/airlines/${encodeURIComponent(slug)}`}
-                className="group flex items-center gap-3 rounded-[4px] border border-neutral-200 bg-white p-3 transition-shadow hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900"
-              >
-                <div className="flex size-12 shrink-0 items-center justify-center rounded-md bg-neutral-50 dark:bg-neutral-800">
-                  {logo ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={logo}
-                      alt=""
-                      className="max-h-9 max-w-10 object-contain"
-                      loading="lazy"
-                    />
-                  ) : (
-                    <span className="text-xs font-bold text-neutral-400">
-                      {(a.iata_code ?? '??').slice(0, 2)}
-                    </span>
-                  )}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-sm font-semibold text-neutral-900 group-hover:text-orange-600 dark:text-neutral-100 dark:group-hover:text-orange-400">
-                    {a.name}
-                  </div>
-                  {a.iata_code ? (
-                    <div className="text-xs text-neutral-500">
-                      IATA <span className="font-mono">{a.iata_code}</span>
-                    </div>
-                  ) : null}
-                </div>
-              </Link>
-            )
-          })}
-        </div>
-
-        {filtered.length === 0 ? (
-          <div className="mt-8 rounded-2xl border border-neutral-200 bg-white p-6 text-center text-sm text-neutral-500 dark:border-neutral-800 dark:bg-neutral-900">
-            No airlines match. Try clearing the search or letter filter.
-          </div>
+        {/* Top airlines — hidden when a search/letter filter is active so the
+            "all" section is the single source of results and you don't see
+            an airline twice. */}
+        {!searchActive && topFiltered.length > 0 ? (
+          <section className="mt-10">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-lg font-bold text-neutral-900 dark:text-neutral-100">
+                Top airlines
+              </h2>
+              <span className="text-xs text-neutral-500">{topFiltered.length} carriers</span>
+            </div>
+            <AirlineGrid airlines={topFiltered} />
+          </section>
         ) : null}
 
-        {filtered.length > visible ? (
-          <div className="mt-6 flex justify-center">
-            <button
-              type="button"
-              onClick={() => setVisible((n) => n + PAGE_SIZE)}
-              className="rounded-lg border border-neutral-300 bg-white px-5 py-2 text-sm font-semibold text-neutral-700 hover:border-orange-400 hover:text-orange-600 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200"
-            >
-              Show more ({(filtered.length - visible).toLocaleString()} remaining)
-            </button>
+        {/* All airlines */}
+        <section className="mt-10">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-lg font-bold text-neutral-900 dark:text-neutral-100">
+              {searchActive ? 'Results' : 'All airlines'}
+            </h2>
+            <span className="text-xs text-neutral-500">
+              {searchActive
+                ? `${allFiltered.length.toLocaleString()} match`
+                : `${allSorted.length.toLocaleString()} total`}
+            </span>
           </div>
-        ) : null}
+
+          {allFiltered.length === 0 ? (
+            <div className="rounded-2xl border border-neutral-200 bg-white p-6 text-center text-sm text-neutral-500 dark:border-neutral-800 dark:bg-neutral-900">
+              No airlines match. Try clearing the search or letter filter.
+            </div>
+          ) : (
+            <>
+              <AirlineGrid airlines={allShown} />
+              {allFiltered.length > visible ? (
+                <div className="mt-6 flex justify-center">
+                  <button
+                    type="button"
+                    onClick={() => setVisible((n) => n + PAGE_SIZE)}
+                    className="rounded-lg border border-neutral-300 bg-white px-5 py-2 text-sm font-semibold text-neutral-700 hover:border-orange-400 hover:text-orange-600 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200"
+                  >
+                    Show more ({(allFiltered.length - visible).toLocaleString()} remaining)
+                  </button>
+                </div>
+              ) : null}
+            </>
+          )}
+        </section>
       </div>
     </main>
+  )
+}
+
+function AirlineGrid({ airlines }: { airlines: Airline[] }) {
+  return (
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      {airlines.map((a) => {
+        const slug = a.iata_code ?? a.id
+        const logo = a.logo_lockup_url ?? a.logo_symbol_url
+        return (
+          <Link
+            key={a.id}
+            href={`/airlines/${encodeURIComponent(slug)}`}
+            className="group flex items-center gap-3 rounded-[4px] border border-neutral-200 bg-white p-3 transition-shadow hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900"
+          >
+            <div className="flex size-12 shrink-0 items-center justify-center rounded-md bg-neutral-50 dark:bg-neutral-800">
+              {logo ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={logo}
+                  alt=""
+                  className="max-h-9 max-w-10 object-contain"
+                  loading="lazy"
+                />
+              ) : (
+                <span className="text-xs font-bold text-neutral-400">
+                  {(a.iata_code ?? '??').slice(0, 2)}
+                </span>
+              )}
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="truncate text-sm font-semibold text-neutral-900 group-hover:text-orange-600 dark:text-neutral-100 dark:group-hover:text-orange-400">
+                {a.name}
+              </div>
+              {a.iata_code ? (
+                <div className="text-xs text-neutral-500">
+                  IATA <span className="font-mono">{a.iata_code}</span>
+                </div>
+              ) : null}
+            </div>
+          </Link>
+        )
+      })}
+    </div>
   )
 }

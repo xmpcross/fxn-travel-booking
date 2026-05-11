@@ -68,6 +68,8 @@ type NormalizedOffer = {
   amount: number
   currency: string
   airline: string
+  airlineIata: string | null
+  airlineLogo: string | null
   durationMinutes: number
   stops: number
   score: number
@@ -124,6 +126,15 @@ function normalizeOffer(offer: FlightOffer): NormalizedOffer | null {
     offer.owner?.iata_code ??
     firstSegment?.operating_carrier?.name ??
     'Airline'
+  const airlineIata =
+    offer.owner?.iata_code ??
+    firstSegment?.marketing_carrier?.iata_code ??
+    firstSegment?.operating_carrier?.iata_code ??
+    null
+  const airlineLogo =
+    firstSegment?.marketing_carrier?.logo_symbol_url ??
+    firstSegment?.operating_carrier?.logo_symbol_url ??
+    null
 
   return {
     id: offer.id,
@@ -131,6 +142,8 @@ function normalizeOffer(offer: FlightOffer): NormalizedOffer | null {
     amount,
     currency: offer.total_currency ?? '',
     airline,
+    airlineIata,
+    airlineLogo,
     durationMinutes,
     stops,
     score: calculateBestScore(amount, durationMinutes, stops),
@@ -166,7 +179,17 @@ function FlightsContent() {
   const [staleFareNotice, setStaleFareNotice] = useState<string | null>(null)
 
   const [sortMode, setSortMode] = useState<SortMode>('best')
-  const [selectedAirlines, setSelectedAirlines] = useState<string[]>([])
+  // Seed from ?airline=XX,YY in the URL so deep-links from the
+  // /airlines/[code] page land already-filtered. Comparison is by IATA code,
+  // case-insensitive.
+  const [selectedAirlines, setSelectedAirlines] = useState<string[]>(() => {
+    const raw = (searchParams?.get('airline') ?? '').trim()
+    if (!raw) return []
+    return raw
+      .split(',')
+      .map((s) => s.trim().toUpperCase())
+      .filter(Boolean)
+  })
   const [stopsFilter, setStopsFilter] = useState<StopsFilter>('any')
   const [maxPrice, setMaxPrice] = useState<number | null>(null)
   const [departBuckets, setDepartBuckets] = useState<TimeBucket[]>([])
@@ -291,13 +314,30 @@ function FlightsContent() {
     [result],
   )
 
-  const airlineOptions = useMemo(
-    () =>
-      Array.from(new Set(normalizedOffers.map((o) => o.airline))).sort((a, b) =>
-        a.localeCompare(b),
-      ),
-    [normalizedOffers],
-  )
+  // Group offers by airline IATA so each filter row has a stable id, a
+  // friendly name, a logo, and a count. Sorted alphabetically by name.
+  const airlineOptions = useMemo(() => {
+    const byIata = new Map<
+      string,
+      { iata: string; name: string; logo: string | null; count: number }
+    >()
+    for (const o of normalizedOffers) {
+      const key = (o.airlineIata ?? o.airline).toUpperCase()
+      const existing = byIata.get(key)
+      if (existing) {
+        existing.count += 1
+        if (!existing.logo && o.airlineLogo) existing.logo = o.airlineLogo
+      } else {
+        byIata.set(key, {
+          iata: key,
+          name: o.airline,
+          logo: o.airlineLogo,
+          count: 1,
+        })
+      }
+    }
+    return Array.from(byIata.values()).sort((a, b) => a.name.localeCompare(b.name))
+  }, [normalizedOffers])
 
   const highestPrice = useMemo(
     () =>
@@ -330,8 +370,9 @@ function FlightsContent() {
     const activeMaxDuration = maxDurationMin ?? highestDuration
 
     const filtered = normalizedOffers.filter((offer) => {
+      const offerKey = (offer.airlineIata ?? offer.airline).toUpperCase()
       const airlineMatch =
-        selectedAirlines.length === 0 || selectedAirlines.includes(offer.airline)
+        selectedAirlines.length === 0 || selectedAirlines.includes(offerKey)
       const priceMatch = offer.amount <= activeMaxPrice
       const durationMatch = offer.durationMinutes <= activeMaxDuration
       const stopsMatch =
@@ -390,10 +431,18 @@ function FlightsContent() {
     router.push('/checkout/flight/travellers')
   }
 
-  function toggleAirline(airline: string) {
-    setSelectedAirlines((cur) =>
-      cur.includes(airline) ? cur.filter((a) => a !== airline) : [...cur, airline],
-    )
+  function toggleAirline(iata: string) {
+    const key = iata.toUpperCase()
+    setSelectedAirlines((cur) => {
+      const next = cur.includes(key) ? cur.filter((a) => a !== key) : [...cur, key]
+      // Mirror selection back to the URL so refresh + share + back/forward
+      // preserve the filter.
+      const nextParams = new URLSearchParams(searchParams?.toString() ?? '')
+      if (next.length === 0) nextParams.delete('airline')
+      else nextParams.set('airline', next.join(','))
+      router.replace(`/flight-search?${nextParams.toString()}`, { scroll: false })
+      return next
+    })
   }
 
   function toggleBucket(
@@ -521,13 +570,46 @@ function FlightsContent() {
 
             {airlineOptions.length > 0 ? (
               <SidebarSection title="Airlines">
-                {airlineOptions.map((airline) => (
-                  <CheckboxRow
-                    key={airline}
-                    label={airline}
-                    checked={selectedAirlines.includes(airline)}
-                    onChange={() => toggleAirline(airline)}
-                  />
+                {selectedAirlines.length > 0 ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedAirlines([])
+                      const nextParams = new URLSearchParams(searchParams?.toString() ?? '')
+                      nextParams.delete('airline')
+                      router.replace(`/flight-search?${nextParams.toString()}`, { scroll: false })
+                    }}
+                    className="-mt-1 mb-1 text-xs font-semibold text-orange-600 hover:underline"
+                  >
+                    Clear ({selectedAirlines.length})
+                  </button>
+                ) : null}
+                {airlineOptions.map((a) => (
+                  <label
+                    key={a.iata}
+                    className="flex cursor-pointer items-center gap-2.5 py-1 text-sm text-neutral-700 dark:text-neutral-300"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedAirlines.includes(a.iata)}
+                      onChange={() => toggleAirline(a.iata)}
+                      className="size-4 rounded border-neutral-300 text-orange-500 focus:ring-orange-500 dark:border-neutral-600 dark:bg-neutral-800"
+                    />
+                    {a.logo ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={a.logo}
+                        alt=""
+                        className="size-5 shrink-0 rounded-sm bg-white object-contain p-0.5 ring-1 ring-neutral-200 dark:ring-neutral-700"
+                      />
+                    ) : (
+                      <span className="inline-flex size-5 shrink-0 items-center justify-center rounded-sm bg-neutral-100 text-[10px] font-bold text-neutral-500 dark:bg-neutral-800">
+                        {a.iata.slice(0, 2)}
+                      </span>
+                    )}
+                    <span className="flex-1 truncate">{a.name}</span>
+                    <span className="text-xs text-neutral-500">{a.count}</span>
+                  </label>
                 ))}
               </SidebarSection>
             ) : null}

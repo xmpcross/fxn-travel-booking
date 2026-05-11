@@ -14,9 +14,6 @@ export const metadata: Metadata = {
 
 export default async function AirlinesPage() {
   const all = await listAllAirlines()
-  // Restrict the directory to the hand-curated top carriers (the ones we
-  // have supplementary alliance/hub/founded data for). Anyone visiting an
-  // un-supplemented airline directly via /airlines/{code} still works.
-  const airlines = all.filter((a) => hasSupplement(a.iata_code))
-  return <AirlinesDirectory airlines={airlines} />
+  const top = all.filter((a) => hasSupplement(a.iata_code))
+  return <AirlinesDirectory top={top} all={all} />
 }
