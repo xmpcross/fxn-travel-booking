@@ -564,21 +564,24 @@ function FlightsContent() {
           {/* Sidebar */}
           <aside className="space-y-5">
             <SidebarSection title="Stops">
-              <PillGroup
+              <RadioList
+                name="stops-filter"
                 value={stopsFilter}
                 onChange={setStopsFilter}
                 options={[
                   { value: 'any', label: 'Any' },
                   { value: 'direct', label: 'Direct' },
-                  { value: 'one_stop', label: '1 stop' },
-                  { value: 'two_stops', label: '2 stops' },
+                  { value: 'one_stop', label: 'Up to 1 stop' },
+                  { value: 'two_stops', label: 'Up to 2 stops' },
                 ]}
               />
-              <CheckboxRow
-                label="Allow overnight stopovers"
-                checked={allowOvernightStopovers}
-                onChange={setAllowOvernightStopovers}
-              />
+              <div className="mt-1 border-t border-neutral-200 pt-2 dark:border-neutral-800">
+                <CheckboxRow
+                  label="Allow overnight stopovers"
+                  checked={allowOvernightStopovers}
+                  onChange={setAllowOvernightStopovers}
+                />
+              </div>
             </SidebarSection>
 
             <SidebarSection title="Flexibility">
@@ -842,6 +845,39 @@ function CheckboxRow({
       />
       <span>{label}</span>
     </label>
+  )
+}
+
+function RadioList<T extends string>({
+  name,
+  value,
+  onChange,
+  options,
+}: {
+  name: string
+  value: T
+  onChange: (v: T) => void
+  options: { value: T; label: string }[]
+}) {
+  return (
+    <div className="space-y-1">
+      {options.map((o) => (
+        <label
+          key={o.value}
+          className="flex cursor-pointer items-center gap-2.5 py-1 text-sm text-neutral-700 dark:text-neutral-300"
+        >
+          <input
+            type="radio"
+            name={name}
+            value={o.value}
+            checked={o.value === value}
+            onChange={() => onChange(o.value)}
+            className="size-4 border-neutral-300 text-orange-500 focus:ring-orange-500 dark:border-neutral-600 dark:bg-neutral-800"
+          />
+          <span>{o.label}</span>
+        </label>
+      ))}
+    </div>
   )
 }
 
