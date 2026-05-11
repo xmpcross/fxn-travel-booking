@@ -101,7 +101,7 @@ export function DestinationsGrid() {
       adults: '1',
       cabinClass: 'economy',
     })
-    return `/flights?${qs.toString()}`
+    return `/flight-search?${qs.toString()}`
   }
 
   const stayHref = (cityName: string) => {
@@ -112,7 +112,7 @@ export function DestinationsGrid() {
       rooms: '1',
       guests: '2',
     })
-    return `/stays?${qs.toString()}`
+    return `/stay-search?${qs.toString()}`
   }
 
   return (

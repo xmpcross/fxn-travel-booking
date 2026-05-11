@@ -359,6 +359,8 @@ function StayDetailContent() {
                     nights={nights}
                     selectedRateId={selectedRateId}
                     onSelectRate={setSelectedRateId}
+                    fallbackPhotos={photos}
+                    fallbackOffset={idx}
                   />
                 ))
               )}
@@ -456,15 +458,36 @@ function RoomBlock({
   nights,
   selectedRateId,
   onSelectRate,
+  fallbackPhotos,
+  fallbackOffset,
 }: {
   room: Room
   nights: number
   selectedRateId: string | null
   onSelectRate: (id: string) => void
+  fallbackPhotos: Photo[]
+  fallbackOffset: number
 }) {
   const { format } = useCurrency()
-  const photos = room.photos ?? []
+  const roomPhotos = room.photos ?? []
   const rates = room.rates ?? []
+  // Duffel often returns rooms[].photos as []. Fall back to the accommodation
+  // photo pool so each room block isn't a "No photos" placeholder; offset by
+  // the room index so adjacent rooms don't show the same image.
+  const photos: Photo[] =
+    roomPhotos.length > 0
+      ? roomPhotos
+      : fallbackPhotos.length > 0
+        ? (() => {
+            const total = fallbackPhotos.length
+            const start = (fallbackOffset * 5) % total
+            const cycled: Photo[] = []
+            for (let i = 0; i < Math.min(5, total); i++) {
+              cycled.push(fallbackPhotos[(start + i) % total])
+            }
+            return cycled
+          })()
+        : []
   const mainPhoto = photos[0]?.url
   const sidePhotos = photos.slice(1, 5)
   const cheapest = rates

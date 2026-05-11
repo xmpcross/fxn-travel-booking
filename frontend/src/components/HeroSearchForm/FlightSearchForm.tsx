@@ -2,7 +2,6 @@
 
 import { Popover, PopoverButton, PopoverPanel } from '@headlessui/react'
 import { AirplaneTakeOffIcon } from '@/components/icons/AirplaneTakeOffIcon'
-import { BedroomIcon } from '@/components/icons/BedroomIcon'
 import clsx from 'clsx'
 import Form from 'next/form'
 import { useRouter } from 'next/navigation'
@@ -88,7 +87,7 @@ const fromIso = (s?: string): Date | null => {
   return new Date(y, m - 1, d)
 }
 
-export const FlightSearchForm: FC<Props> = ({ className, openInNewTab = true, initial, onSwitchToStays }) => {
+export const FlightSearchForm: FC<Props> = ({ className, openInNewTab = true, initial }) => {
   const router = useRouter()
 
   const [tripType, setTripType] = useState<'return' | 'oneway'>(
@@ -176,7 +175,7 @@ export const FlightSearchForm: FC<Props> = ({ className, openInNewTab = true, in
     if (infants > 0) params.set('infants', String(infants))
     params.set('cabinClass', cabin)
 
-    const url = `/flights?${params.toString()}`
+    const url = `/flight-search?${params.toString()}`
     if (openInNewTab) {
       // Browsers allow this because submit is a direct user gesture.
       window.open(url, '_blank', 'noopener,noreferrer')
@@ -203,14 +202,6 @@ export const FlightSearchForm: FC<Props> = ({ className, openInNewTab = true, in
             className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-500 text-white shadow-sm"
           >
             <AirplaneTakeOffIcon className="size-5" />
-          </button>
-          <button
-            type="button"
-            aria-label="Stays"
-            onClick={onSwitchToStays}
-            className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-neutral-300 text-neutral-500 hover:border-orange-500 hover:text-orange-500 dark:border-neutral-700"
-          >
-            <BedroomIcon className="size-5" />
           </button>
         </div>
 

@@ -1,7 +1,6 @@
 'use client'
 
 import { Popover, PopoverButton, PopoverPanel } from '@headlessui/react'
-import { AirplaneTakeOffIcon } from '@/components/icons/AirplaneTakeOffIcon'
 import { BedroomIcon } from '@/components/icons/BedroomIcon'
 import clsx from 'clsx'
 import { useRouter } from 'next/navigation'
@@ -84,7 +83,6 @@ export const StaySearchForm: FC<Props> = ({
   className,
   openInNewTab = true,
   initial,
-  onSwitchToFlights,
 }) => {
   const router = useRouter()
 
@@ -149,7 +147,7 @@ export const StaySearchForm: FC<Props> = ({
     params.set('rooms', String(Math.max(1, rooms)))
     params.set('guests', String(Math.max(1, guests)))
 
-    const url = `/stays?${params.toString()}`
+    const url = `/stay-search?${params.toString()}`
     if (openInNewTab) {
       window.open(url, '_blank', 'noopener,noreferrer')
     } else {
@@ -165,14 +163,6 @@ export const StaySearchForm: FC<Props> = ({
       {/* Top: mode icons + meta line */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <button
-            type="button"
-            aria-label="Flights"
-            onClick={onSwitchToFlights}
-            className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-neutral-300 text-neutral-500 hover:border-orange-500 hover:text-orange-500 dark:border-neutral-700"
-          >
-            <AirplaneTakeOffIcon className="size-5" />
-          </button>
           <button
             type="button"
             aria-pressed="true"
