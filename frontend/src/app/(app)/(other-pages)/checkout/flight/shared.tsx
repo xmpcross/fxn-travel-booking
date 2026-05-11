@@ -1,7 +1,18 @@
 "use client";
 
+import {
+  ChevronDownIcon,
+  ClockIcon,
+  ExclamationCircleIcon,
+  InformationCircleIcon,
+  PaperAirplaneIcon,
+  WifiIcon,
+} from "@heroicons/react/24/outline";
+import { BedroomIcon } from "@/components/icons/BedroomIcon";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import type { CreateOrder, Offer, PassengerIdentityDocumentType, SeatMap } from "@duffel/api/types";
+import Link from "next/link";
+import { useState } from "react";
 
 export const SELECTION_STORAGE_KEY = "selected-flight-offer";
 export const CHECKOUT_STORAGE_KEY = "flight-checkout-state";
@@ -516,116 +527,398 @@ export function buildBookingPayload(
   };
 }
 
+function placeCityName(place: { city_name?: string; name?: string | null } | undefined | null): string {
+  if (!place) return "";
+  // Airport places have city_name; city-typed places don't, so fall back to name.
+  return (place as { city_name?: string }).city_name ?? place.name ?? "";
+}
+
 export function FlightSummary({ selection }: { selection: StoredFlightSelection }) {
   const { format } = useCurrency();
   if (!selection.offer) {
     return null;
   }
 
+  const slices = selection.offer.slices ?? [];
+
   return (
-    <article className="selection-card">
-      <div className="checkout-flight-summary">
-        <div className="checkout-flight-top">
-          <div>
-            <h2>
-              {selection.offer.slices?.[0]?.origin?.iata_code} to {selection.offer.slices?.[0]?.destination?.iata_code}
-            </h2>
-            <p className="muted">
-              {selection.offer.owner?.name ?? selection.offer.owner?.iata_code}
-              {selection.offer.slices?.[0]?.duration ? ` | ${selection.offer.slices[0].duration}` : ""}
-            </p>
-          </div>
-          <div className="price">
-            {format(selection.offer.total_amount, selection.offer.total_currency)}
-          </div>
+    <article className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+      {/* Top price summary */}
+      <div className="mb-4 flex items-center justify-between border-b border-neutral-100 pb-4 dark:border-neutral-800">
+        <div>
+          <h2 className="text-base font-bold text-neutral-900 dark:text-neutral-100">
+            {selection.offer.slices?.[0]?.origin?.iata_code} →{" "}
+            {selection.offer.slices?.[slices.length - 1]?.destination?.iata_code}
+          </h2>
+          <p className="mt-0.5 text-xs text-neutral-500">
+            {selection.offer.owner?.name ?? selection.offer.owner?.iata_code}
+          </p>
         </div>
-
-        <div className="checkout-itinerary">
-          {selection.offer.slices?.map((slice, sliceIndex) => {
-            const firstSegment = slice.segments?.[0];
-            const lastSegment = slice.segments?.[slice.segments.length - 1];
-            const airlineLabel =
-              firstSegment?.marketing_carrier?.name ??
-              firstSegment?.operating_carrier?.name ??
-              selection.offer?.owner?.name ??
-              "Airline";
-
-            return (
-              <div className="checkout-slice" key={slice.id ?? `slice-${sliceIndex}`}>
-                <div className="checkout-slice-head">
-                  <div>
-                    <h3>
-                      {getPlaceLabel(slice.origin)} to {getPlaceLabel(slice.destination)}
-                    </h3>
-                    <p className="muted">
-                      {formatTime(firstSegment?.departing_at)} - {formatTime(lastSegment?.arriving_at)} (
-                      {formatDuration(parseDurationToMinutes(slice.duration ?? undefined))}, {formatSliceStops(slice.segments?.length ?? 0)})
-                    </p>
-                    <p className="muted">
-                      {airlineLabel} | {formatDate(firstSegment?.departing_at)}
-                    </p>
-                  </div>
-                </div>
-
-                {slice.segments?.map((segment) => {
-                  const aircraftRaw = segment.aircraft?.name;
-                  const aircraft = aircraftRaw
-                    ? aircraftRaw
-                        .replace(/^(Boeing|Airbus|Embraer|Bombardier|McDonnell Douglas|ATR|De Havilland|Saab|Fokker)\s+/i, "")
-                        .split(/[\s,/|]+/)[0]
-                    : null;
-                  const segCarrier = segment.marketing_carrier ?? segment.operating_carrier;
-                  const segCarrierName =
-                    segCarrier?.name ?? selection.offer?.owner?.name ?? "Airline";
-                  const segCarrierLogo =
-                    segCarrier?.logo_symbol_url ??
-                    selection.offer?.owner?.logo_symbol_url ??
-                    null;
-                  return (
-                  <div className="checkout-segment" key={segment.id}>
-                    <div className="checkout-segment-time">
-                      <strong>{formatTime(segment.departing_at)}</strong>
-                      <span>{formatDate(segment.departing_at)}</span>
-                    </div>
-                    <div className="checkout-segment-line">
-                      <span className="checkout-dot" />
-                      <span className="checkout-airline-pill">
-                        {segCarrierLogo ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={segCarrierLogo}
-                            alt=""
-                            className="checkout-airline-pill-logo"
-                          />
-                        ) : null}
-                        <span>
-                          {segCarrierName}
-                          {aircraft ? ` · ${aircraft}` : ""}
-                        </span>
-                      </span>
-                      <span className="checkout-dot" />
-                    </div>
-                    <div className="checkout-segment-place">
-                      <strong>{getPlaceLabel(segment.origin)}</strong>
-                      <span>{segment.origin?.iata_code}</span>
-                    </div>
-                    <div className="checkout-segment-time">
-                      <strong>{formatTime(segment.arriving_at)}</strong>
-                      <span>{formatDate(segment.arriving_at)}</span>
-                    </div>
-                    <div className="checkout-segment-place">
-                      <strong>{getPlaceLabel(segment.destination)}</strong>
-                      <span>{segment.destination?.iata_code}</span>
-                    </div>
-                  </div>
-                  );
-                })}
-              </div>
-            );
-          })}
+        <div className="text-base font-bold text-rose-600 dark:text-rose-400">
+          {format(selection.offer.total_amount, selection.offer.total_currency)}
         </div>
-        <p className="code">{selection.offer.id}</p>
       </div>
+
+      <div className="space-y-4">
+        {slices.map((slice, sliceIndex) => {
+          const firstSegment = slice.segments?.[0];
+          const lastSegment = slice.segments?.[(slice.segments?.length ?? 1) - 1];
+          const nextSlice = slices[sliceIndex + 1];
+          const sliceDurMins = parseDurationToMinutes(slice.duration ?? undefined);
+          const nextDay = isNextDay(
+            firstSegment?.departing_at,
+            lastSegment?.arriving_at,
+          );
+
+          // Layover night-count to the next slice (return-trip etc.). Used to
+          // suggest accommodation between legs.
+          const accomNights =
+            lastSegment?.arriving_at && nextSlice?.segments?.[0]?.departing_at
+              ? Math.max(
+                  0,
+                  Math.round(
+                    (new Date(nextSlice.segments[0].departing_at).getTime() -
+                      new Date(lastSegment.arriving_at).getTime()) /
+                      86_400_000,
+                  ),
+                )
+              : 0;
+          const accomCity = placeCityName(slice.destination);
+
+          return (
+            <div key={slice.id ?? `slice-${sliceIndex}`}>
+              {/* Slice header */}
+              <div className="mb-2 flex items-center justify-between">
+                <h3 className="text-sm font-bold text-neutral-900 dark:text-neutral-100">
+                  {getPlaceLabel(slice.origin)}{" "}
+                  <span className="text-neutral-500">→</span>{" "}
+                  {getPlaceLabel(slice.destination)}
+                </h3>
+                <span className="inline-flex items-center gap-1 text-xs text-neutral-500">
+                  <ClockIcon className="size-3.5" />
+                  {formatDuration(sliceDurMins)}
+                </span>
+              </div>
+
+              {/* Timeline card */}
+              <div className="rounded-lg border border-neutral-200 dark:border-neutral-800">
+                <SliceTimeline slice={slice} ownerLogo={selection.offer?.owner?.logo_symbol_url ?? null} ownerName={selection.offer?.owner?.name ?? null} />
+              </div>
+
+              {/* Next-day arrival warning */}
+              {nextDay ? (
+                <div className="mt-2 flex items-center gap-2 rounded-lg bg-orange-50 px-3 py-2 text-xs text-orange-800 dark:bg-orange-950/40 dark:text-orange-200">
+                  <ExclamationCircleIcon className="size-4 shrink-0 text-orange-500" />
+                  You&apos;ll arrive the next day
+                </div>
+              ) : null}
+
+              {/* Accommodation CTA between legs */}
+              {nextSlice && accomNights > 0 ? (
+                <>
+                  <div className="mt-3">
+                    <Link
+                      href={`/stay-search?destinationQuery=${encodeURIComponent(
+                        accomCity,
+                      )}`}
+                      className="flex items-center gap-2 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs font-medium text-neutral-700 hover:border-orange-400 hover:text-orange-600 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200"
+                    >
+                      <BedroomIcon className="size-4" />
+                      <span className="underline">
+                        Check accommodation in {accomCity}
+                      </span>
+                    </Link>
+                  </div>
+                  <p className="mt-4 text-center text-xs text-neutral-500">
+                    {accomNights} night{accomNights === 1 ? "" : "s"} in {accomCity}
+                  </p>
+                </>
+              ) : null}
+            </div>
+          );
+        })}
+      </div>
+
+      <p className="mt-4 select-all font-mono text-[10px] text-neutral-400">
+        Offer ID: {selection.offer.id}
+      </p>
     </article>
   );
+}
+
+function SliceTimeline({
+  slice,
+  ownerLogo,
+  ownerName,
+}: {
+  slice: NonNullable<Offer["slices"]>[number];
+  ownerLogo: string | null;
+  ownerName: string | null;
+}) {
+  const segments = slice.segments ?? [];
+  if (segments.length === 0) return null;
+
+  // Render: row(dep) → row(airline pill, expandable) per segment, with a
+  // final row(arr) at the end. For multi-segment slices the structure
+  // becomes dep → pill → arr-of-seg1 → layover row → dep-of-seg2 → pill → arr.
+  return (
+    <div className="px-4 py-3">
+      {segments.map((segment, segIdx) => {
+        const isLastSeg = segIdx === segments.length - 1;
+        const carrier = segment.marketing_carrier ?? segment.operating_carrier;
+        const carrierName = carrier?.name ?? ownerName ?? "Airline";
+        const carrierLogo = carrier?.logo_symbol_url ?? ownerLogo ?? null;
+        const opCarrier = segment.operating_carrier;
+        const operatedDifferently =
+          !!opCarrier?.name && opCarrier.name !== carrier?.name;
+        const segDurMins = parseDurationToMinutes(segment.duration ?? undefined);
+        const flightNumber =
+          segment.marketing_carrier_flight_number ??
+          segment.operating_carrier_flight_number ??
+          "";
+
+        const aircraftRaw = segment.aircraft?.name ?? "";
+        const aircraft = aircraftRaw
+          ? aircraftRaw
+              .replace(
+                /^(Boeing|Airbus|Embraer|Bombardier|McDonnell Douglas|ATR|De Havilland|Saab|Fokker)\s+/i,
+                "",
+              )
+              .split(/[\s,/|]+/)[0]
+          : null;
+
+        return (
+          <div key={segment.id}>
+            {/* Departure row */}
+            <TimelineRow
+              left={
+                <>
+                  <div className="text-sm font-bold text-neutral-900 dark:text-neutral-100">
+                    {formatTime(segment.departing_at)}
+                  </div>
+                  <div className="text-xs text-neutral-500">
+                    {formatDate(segment.departing_at)}
+                  </div>
+                </>
+              }
+              connector={<TimelineDot />}
+              right={
+                <>
+                  <div className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
+                    {getPlaceLabel(segment.origin)}
+                    {segment.origin?.iata_code ? (
+                      <span className="ms-1 text-neutral-500">
+                        · {segment.origin.iata_code}
+                      </span>
+                    ) : null}
+                  </div>
+                  {placeCityName(segment.origin) ? (
+                    <div className="text-xs text-neutral-500">{placeCityName(segment.origin)}</div>
+                  ) : null}
+                </>
+              }
+            />
+
+            {/* Airline pill row (expandable) */}
+            <TimelineRow
+              left={
+                <div className="text-xs text-neutral-500">{formatDuration(segDurMins)}</div>
+              }
+              connector={<TimelinePlane />}
+              right={
+                <AirlinePill
+                  carrierName={carrierName}
+                  carrierLogo={carrierLogo}
+                  operatedBy={operatedDifferently ? opCarrier?.name : null}
+                  flightNumber={flightNumber}
+                  aircraft={aircraft}
+                />
+              }
+            />
+
+            {/* Arrival row — for the last segment only. For earlier segments
+                the next segment's departure row plays this role visually. */}
+            {isLastSeg ? (
+              <TimelineRow
+                left={
+                  <>
+                    <div className="text-sm font-bold text-neutral-900 dark:text-neutral-100">
+                      {formatTime(segment.arriving_at)}
+                    </div>
+                    <div className="text-xs text-neutral-500">
+                      {formatDate(segment.arriving_at)}
+                    </div>
+                  </>
+                }
+                connector={<TimelineDot />}
+                right={
+                  <>
+                    <div className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
+                      {getPlaceLabel(segment.destination)}
+                      {segment.destination?.iata_code ? (
+                        <span className="ms-1 text-neutral-500">
+                          · {segment.destination.iata_code}
+                        </span>
+                      ) : null}
+                    </div>
+                    {placeCityName(segment.destination) ? (
+                      <div className="text-xs text-neutral-500">{placeCityName(segment.destination)}</div>
+                    ) : null}
+                  </>
+                }
+                noLine
+              />
+            ) : null}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function TimelineRow({
+  left,
+  connector,
+  right,
+  noLine,
+}: {
+  left: React.ReactNode;
+  connector: React.ReactNode;
+  right: React.ReactNode;
+  noLine?: boolean;
+}) {
+  return (
+    <div className="grid grid-cols-[64px_24px_1fr] gap-x-3">
+      <div className="py-1 text-right">{left}</div>
+      <div className="relative flex justify-center">
+        {connector}
+        {!noLine ? (
+          <span className="absolute left-1/2 top-7 bottom-0 -translate-x-1/2 border-l border-dashed border-neutral-300 dark:border-neutral-700" />
+        ) : null}
+      </div>
+      <div className="py-1">{right}</div>
+    </div>
+  );
+}
+
+function TimelineDot() {
+  return (
+    <span className="relative z-10 mt-1.5 inline-block size-2.5 rounded-full bg-neutral-400" />
+  );
+}
+
+function TimelinePlane() {
+  return (
+    <span className="relative z-10 mt-1 inline-flex size-5 items-center justify-center rounded-full bg-white text-neutral-500 dark:bg-neutral-900">
+      <PaperAirplaneIcon className="size-3.5 -rotate-45" />
+    </span>
+  );
+}
+
+function AirlinePill({
+  carrierName,
+  carrierLogo,
+  operatedBy,
+  flightNumber,
+  aircraft,
+}: {
+  carrierName: string;
+  carrierLogo: string | null;
+  operatedBy: string | null;
+  flightNumber: string;
+  aircraft: string | null;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={() => setOpen((x) => !x)}
+        className="inline-flex items-center gap-2 rounded-full bg-orange-50 px-3 py-1.5 text-xs font-semibold text-orange-700 hover:bg-orange-100 dark:bg-orange-950/40 dark:text-orange-300"
+      >
+        {carrierLogo ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={carrierLogo} alt="" className="size-4 rounded-full bg-white" />
+        ) : (
+          <span className="inline-block size-4 rounded-full bg-orange-500" />
+        )}
+        <span>{carrierName}</span>
+        <ChevronDownIcon
+          className={`size-3.5 transition-transform ${open ? "rotate-180" : ""}`}
+        />
+      </button>
+      {open ? (
+        <div className="mt-3 space-y-3 text-xs">
+          <section>
+            <p className="mb-1.5 font-semibold text-neutral-900 dark:text-neutral-100">
+              Connection info
+            </p>
+            <DetailRow icon={<PaperAirplaneIcon className="size-3.5 -rotate-45" />} label="Airline" value={carrierName} />
+            <DetailRow
+              icon={<PaperAirplaneIcon className="size-3.5 -rotate-45" />}
+              label="Operating airline"
+              value={operatedBy ?? carrierName}
+            />
+            <DetailRow
+              icon={<InformationCircleIcon className="size-3.5" />}
+              label="Flight no"
+              value={flightNumber || "—"}
+            />
+            {aircraft ? (
+              <DetailRow
+                icon={<InformationCircleIcon className="size-3.5" />}
+                label="Aircraft"
+                value={aircraft}
+              />
+            ) : null}
+          </section>
+          <section>
+            <p className="mb-1.5 font-semibold text-neutral-900 dark:text-neutral-100">
+              Seating info
+            </p>
+            <DetailRow label="Seat pitch" value="Check after booking" />
+            <DetailRow label="Seat width" value="Check after booking" />
+            <DetailRow label="Seat recline" value="Check after booking" />
+            <DetailRow
+              icon={<WifiIcon className="size-3.5" />}
+              label="In-seat power"
+              value="Varies by aircraft"
+            />
+            <DetailRow
+              icon={<WifiIcon className="size-3.5" />}
+              label="Wi-Fi on board"
+              value="Check airline policy"
+            />
+          </section>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function DetailRow({
+  icon,
+  label,
+  value,
+}: {
+  icon?: React.ReactNode;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="flex items-center justify-between py-1 text-xs">
+      <span className="inline-flex items-center gap-1.5 text-neutral-500">
+        {icon ?? <span className="inline-block size-3.5" />}
+        {label}
+      </span>
+      <span className="font-medium text-neutral-900 dark:text-neutral-100">{value}</span>
+    </div>
+  );
+}
+
+function isNextDay(departingAt?: string | null, arrivingAt?: string | null): boolean {
+  if (!departingAt || !arrivingAt) return false;
+  const dep = departingAt.match(/^(\d{4}-\d{2}-\d{2})/)?.[1];
+  const arr = arrivingAt.match(/^(\d{4}-\d{2}-\d{2})/)?.[1];
+  return !!dep && !!arr && dep !== arr;
 }
