@@ -133,8 +133,7 @@ export function DestinationsGrid() {
                         href={flightHref(detectedOrigin, city.iata)}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="hover:underline"
-                        style={{ color: '#ff6900' }}
+                        className="text-orange-600 hover:underline dark:text-orange-400"
                       >
                         Flights
                       </a>
@@ -143,13 +142,12 @@ export function DestinationsGrid() {
                         href={stayHref(city.name)}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="hover:underline"
-                        style={{ color: '#ff6900' }}
+                        className="text-orange-600 hover:underline dark:text-orange-400"
                       >
                         Stays
                       </a>
                       <span aria-hidden className="text-neutral-300 dark:text-neutral-600">·</span>
-                      <span style={{ color: '#ff6900' }}>Cars</span>
+                      <span className="text-orange-600 dark:text-orange-400">Cars</span>
                     </div>
                   </div>
                   <DisclosureButton
