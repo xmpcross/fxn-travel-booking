@@ -61,7 +61,9 @@ function FlightsContent() {
                   cabinClass: VALID_CABINS.includes(params.get('cabinClass') as CabinClass)
                     ? (params.get('cabinClass') as CabinClass)
                     : 'economy',
-                  tripType: params.get('returnDate') ? 'return' : 'oneway',
+                  // Default to a return trip on the flights landing page; only
+                  // flip to one-way if the URL explicitly says so.
+                  tripType: params.get('tripType') === 'oneway' ? 'oneway' : 'return',
                 }}
               />
             </div>
