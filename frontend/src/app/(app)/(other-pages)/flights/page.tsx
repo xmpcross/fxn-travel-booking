@@ -7,6 +7,7 @@ import BgGlassmorphism from '@/components/BgGlassmorphism'
 import HeroSectionWithSearchForm1 from '@/components/hero-sections/HeroSectionWithSearchForm1'
 import { FlightSearchForm } from '@/components/HeroSearchForm/FlightSearchForm'
 import { PopularDestinations } from '@/components/PopularDestinations'
+import { TravelProsSection } from '@/components/TravelProsSection'
 import heroImageFlights from '@/images/hero-right-flight.png'
 
 type CabinClass = 'economy' | 'premium_economy' | 'business' | 'first'
@@ -66,6 +67,8 @@ function FlightsContent() {
             </div>
           }
         />
+
+        <TravelProsSection />
 
         <PopularDestinations />
       </div>
