@@ -34,12 +34,12 @@ export default async function Top50AirlinesPage() {
           · Top 50
         </nav>
 
-        <header className="text-center">
+        <header>
           <p className="text-sm font-semibold uppercase tracking-wide text-orange-600">Airlines</p>
           <h1 className="mt-3 text-[2rem] font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
             Top 50 Airlines
           </h1>
-          <p className="mx-auto mt-3 max-w-3xl text-sm text-neutral-600 dark:text-neutral-400">
+          <p className="mt-3 max-w-3xl text-sm text-neutral-600 dark:text-neutral-400">
             The {top.length} major commercial carriers we curate — Star Alliance, oneworld,
             SkyTeam, and the biggest unaffiliated names. Tap any airline for alliance, hubs,
             conditions of carriage, and a pre-filtered flight search.

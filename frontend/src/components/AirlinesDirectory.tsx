@@ -57,12 +57,12 @@ export function AirlinesDirectory({ top, all }: { top: Airline[]; all: Airline[]
   return (
     <main className="bg-neutral-50 pb-16 dark:bg-neutral-950">
       <div className="container py-6">
-        <header className="text-center">
+        <header>
           <p className="text-sm font-semibold uppercase tracking-wide text-orange-600">Airlines</p>
           <h1 className="mt-3 text-[2rem] font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
             Airline directory
           </h1>
-          <p className="mx-auto mt-3 max-w-3xl text-sm text-neutral-600 dark:text-neutral-400">
+          <p className="mt-3 max-w-3xl text-sm text-neutral-600 dark:text-neutral-400">
             {allSorted.length.toLocaleString()} airlines available through our flight search. Tap
             an airline to view its conditions of carriage and find flights operated by it.
           </p>

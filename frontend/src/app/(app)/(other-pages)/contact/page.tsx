@@ -86,7 +86,7 @@ export default function ContactPage() {
 
   return (
     <main className="container py-12 lg:py-16">
-      <section className="mx-auto max-w-3xl text-center">
+      <section>
         <p className="text-sm font-semibold uppercase tracking-wide text-orange-600">Contact</p>
         <h1 className="mt-3 text-4xl font-bold tracking-tight text-neutral-900 sm:text-5xl dark:text-neutral-100">
           Get in touch

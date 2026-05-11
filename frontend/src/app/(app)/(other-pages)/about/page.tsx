@@ -42,7 +42,7 @@ export default function AboutPage() {
   return (
     <main className="container py-12 lg:py-16">
       {/* Hero */}
-      <section className="mx-auto max-w-3xl text-center">
+      <section>
         <p className="text-sm font-semibold uppercase tracking-wide text-orange-600">About us</p>
         <h1 className="mt-3 text-4xl font-bold tracking-tight text-neutral-900 sm:text-5xl dark:text-neutral-100">
           Helping travellers find the right trip, fast.
@@ -161,7 +161,7 @@ export default function AboutPage() {
       </section>
 
       {/* CTA */}
-      <section className="mt-16 text-center">
+      <section className="mt-16">
         <h2 className="text-2xl font-bold text-neutral-900 sm:text-3xl dark:text-neutral-100">
           Ready to find your next trip?
         </h2>

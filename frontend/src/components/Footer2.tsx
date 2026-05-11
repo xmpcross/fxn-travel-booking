@@ -15,7 +15,7 @@ const navigation: {
   solutions: [
     { name: 'Home', href: '/' },
     { name: 'About', href: '/about' },
-    { name: 'How we work', href: '/how-we-work' },
+    { name: 'How we worK', href: '/how-we-work' },
     { name: 'News', href: '/news' },
     { name: 'Contact', href: '/contact' },
   ],
@@ -142,7 +142,7 @@ export default function Footer2() {
                   href="/advertise"
                   className="text-sm/6 font-light underline text-gray-600 hover:text-gray-900 dark:text-neutral-400"
                 >
-                  Advertise with us
+                  Advertise with Us
                 </a>
               </li>
             </ul>
@@ -179,7 +179,7 @@ export default function Footer2() {
                   href="/low-fare-tips"
                   className="text-sm/6 font-light underline text-gray-600 hover:text-gray-900 dark:text-neutral-400"
                 >
-                  Low fare tips
+                  Low fare Tips
                 </a>
               </li>
             </ul>

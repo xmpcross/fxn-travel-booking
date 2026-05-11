@@ -296,7 +296,7 @@ export const FlightSearchForm: FC<Props> = ({ className, openInNewTab = true, in
         {/* From + To live in a single grid cell that spans 2 columns so we
             can collapse the gap between them and float a Swap button at
             their boundary. */}
-        <div className="relative grid grid-cols-2 gap-8 sm:col-span-2 lg:col-span-2">
+        <div className="relative grid grid-cols-2 gap-3 sm:col-span-2 lg:col-span-2">
           <SimpleAirportInput
             /* Re-mount once when geolocation resolves so the dynamic
                placeholder actually replaces the initial "Perth (PER)" hint,
