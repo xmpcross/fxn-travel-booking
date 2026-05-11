@@ -115,21 +115,28 @@
   body {
     font-family: var(--font-outfit), var(--font-sans), system-ui, sans-serif;
     font-weight: 300;
+    font-size: 1rem;
   }
   p {
     font-family: var(--font-outfit), var(--font-sans), system-ui, sans-serif !important;
     font-weight: 300;
+    font-size: 1rem !important;
   }
 
   /* h1..h3 use Urbanist 700 — the headline typeface. h4..h6 are left
      alone so smaller subheadings inherit Inter from --font-sans.
      !important ensures per-element font-bold / font-semibold classes
-     elsewhere in the codebase still resolve to Urbanist 700. font-size
-     is left to each page so different headings can size themselves
-     with Tailwind's text-* classes. */
+     elsewhere in the codebase still resolve to Urbanist 700. */
   h1, h2, h3 {
     font-family: var(--font-urbanist), var(--font-sans), system-ui, sans-serif !important;
     font-weight: 700 !important;
+  }
+
+  /* h2 fixed to 1.2rem so every section heading reads at the same
+     scale; h1 and h3 keep their per-page Tailwind text-* sizing. */
+  h2 {
+    font-size: 1.2rem !important;
+    line-height: 1.25 !important;
   }
 }
 
