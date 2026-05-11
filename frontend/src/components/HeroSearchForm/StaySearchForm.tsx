@@ -245,10 +245,7 @@ export const StaySearchForm: FC<Props> = ({
       </div>
 
       {/* Footer */}
-      <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm text-neutral-500 dark:text-neutral-400">
-          {openInNewTab ? 'Search results open on a dedicated page.' : 'Update fields and search to refresh results.'}
-        </p>
+      <div className="mt-5 flex flex-wrap items-center justify-end gap-3">
         <button
           type="submit"
           className="rounded-lg bg-orange-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"

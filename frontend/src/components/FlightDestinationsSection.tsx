@@ -2,11 +2,18 @@
 
 import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/react'
 import { ChevronDownIcon } from '@heroicons/react/24/outline'
+import { useEffect, useMemo, useState } from 'react'
+
+const DEFAULT_ORIGIN_IATA = 'PER'
+
+function isoDate(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
 
 const CITIES: { name: string; iata: string }[] = [
   { name: 'Melbourne', iata: 'MEL' },
   { name: 'London', iata: 'LON' },
-  { name: 'Perth', iata: 'PER' },
+  { name: 'Seoul, South Korea', iata: 'SEL' },
   { name: 'Los Angeles', iata: 'LAX' },
   { name: 'Auckland', iata: 'AKL' },
   { name: 'Cairns', iata: 'CNS' },
@@ -43,6 +50,59 @@ const POPULAR_ORIGINS: { name: string; iata: string }[] = [
 ]
 
 export function FlightDestinationsSection() {
+  // Detect the visitor's nearest IATA so destination-tile links carry an
+  // origin pre-set. Falls back to PER if the geo lookup fails (matches the
+  // From-field placeholder default).
+  const [detectedOrigin, setDetectedOrigin] = useState<string>(DEFAULT_ORIGIN_IATA)
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      try {
+        const ipRes = await fetch('https://ipapi.co/json/')
+        if (!ipRes.ok) return
+        const ipData = (await ipRes.json()) as { city?: string }
+        if (!ipData.city || cancelled) return
+        const placesRes = await fetch(
+          `/api/places/suggestions?q=${encodeURIComponent(ipData.city)}`,
+        )
+        if (!placesRes.ok) return
+        const placesData = (await placesRes.json()) as {
+          data?: Array<{ iata_code: string }>
+        }
+        const iata = placesData.data?.[0]?.iata_code
+        if (iata && !cancelled) setDetectedOrigin(iata)
+      } catch {
+        // Silent — keep the PER default.
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  // Default return-trip dates: depart today+30, return today+37.
+  const defaultDates = useMemo(() => {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const dep = new Date(today)
+    dep.setDate(today.getDate() + 30)
+    const ret = new Date(today)
+    ret.setDate(today.getDate() + 37)
+    return { departureDate: isoDate(dep), returnDate: isoDate(ret) }
+  }, [])
+
+  const buildFlightHref = (originIata: string, destinationIata: string) => {
+    const qs = new URLSearchParams({
+      origin: originIata,
+      destination: destinationIata,
+      departureDate: defaultDates.departureDate,
+      returnDate: defaultDates.returnDate,
+      adults: '1',
+      cabinClass: 'economy',
+    })
+    return `/flights?${qs.toString()}`
+  }
+
   return (
     <section>
       <h2 className="text-2xl font-bold text-neutral-900 sm:text-3xl dark:text-neutral-100">
@@ -66,7 +126,7 @@ export function FlightDestinationsSection() {
                 <div className="border-b border-neutral-200 dark:border-neutral-800">
                   <div className="flex items-center justify-between py-4">
                     <a
-                      href={`/flights?destination=${city.iata}`}
+                      href={buildFlightHref(detectedOrigin, city.iata)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex-1 text-sm font-semibold text-neutral-900 hover:text-orange-600 dark:text-neutral-100 dark:hover:text-orange-400"
@@ -87,7 +147,7 @@ export function FlightDestinationsSection() {
                     {origins.map((o) => (
                       <li key={o.iata}>
                         <a
-                          href={`/flights?origin=${o.iata}&destination=${city.iata}`}
+                          href={buildFlightHref(o.iata, city.iata)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="block py-1 text-sm text-neutral-600 hover:text-orange-600 dark:text-neutral-400 dark:hover:text-orange-400"
