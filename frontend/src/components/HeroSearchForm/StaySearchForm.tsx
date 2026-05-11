@@ -183,15 +183,6 @@ export const StaySearchForm: FC<Props> = ({
           </button>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="text-sm text-neutral-600 dark:text-neutral-400">
-            <span>
-              {rooms} room{rooms > 1 ? 's' : ''}, {guests} guest{guests > 1 ? 's' : ''}
-            </span>
-            <span className="mx-2 text-neutral-300 dark:text-neutral-600">|</span>
-            <span>AUD</span>
-          </div>
-        </div>
       </div>
 
       {/* Field grid */}
