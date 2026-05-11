@@ -97,8 +97,8 @@ export function PopularDestinations() {
           <Link
             key={d.iata}
             href={buildHref(d.iata)}
-            className={`group relative aspect-[4/3] overflow-hidden rounded-[4px] bg-neutral-200 dark:bg-neutral-800 ${
-              WIDE_IATAS.has(d.iata) ? 'lg:col-span-2 lg:aspect-[8/3]' : ''
+            className={`group relative aspect-[4/3] overflow-hidden rounded-[4px] bg-neutral-200 lg:aspect-auto lg:h-[550px] dark:bg-neutral-800 ${
+              WIDE_IATAS.has(d.iata) ? 'lg:col-span-2' : ''
             }`}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -125,7 +125,7 @@ export function PopularDestinations() {
             text right, matches the Kiwi reference. */}
         <Link
           href="/flight-search"
-          className="group flex aspect-[4/3] overflow-hidden rounded-[4px] border border-neutral-200 bg-white hover:border-orange-400 hover:shadow-sm lg:col-span-2 lg:aspect-[8/3] dark:border-neutral-800 dark:bg-neutral-900"
+          className="group flex aspect-[4/3] overflow-hidden rounded-[4px] border border-neutral-200 bg-white hover:border-orange-400 hover:shadow-sm lg:col-span-2 lg:aspect-auto lg:h-[550px] dark:border-neutral-800 dark:bg-neutral-900"
         >
           <div className="hidden h-full w-1/2 shrink-0 items-end justify-center bg-gradient-to-br from-amber-100 via-orange-100 to-rose-100 sm:flex dark:from-amber-950/40 dark:via-orange-950/40 dark:to-rose-950/40">
             <svg
