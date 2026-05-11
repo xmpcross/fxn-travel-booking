@@ -219,7 +219,7 @@ export const FlightSearchForm: FC<Props> = ({ className, openInNewTab = true, in
     <Form
       action={handleSubmit}
       className={clsx(
-        'w-full rounded-2xl bg-[#f7f7f7] p-6 sm:p-8 dark:bg-neutral-900',
+        'w-full rounded-2xl bg-neutral-50 p-6 sm:p-8 dark:bg-neutral-900',
         className
       )}
     >
