@@ -272,7 +272,7 @@ function StayDetailContent() {
         {stars > 0 && (
           <div className="mb-1 flex items-center gap-0.5">
             {Array.from({ length: Math.round(stars) }).map((_, i) => (
-              <StarSolid key={i} className="size-4 text-orange-500" />
+              <StarSolid key={i} className="size-4 text-[#ffce00]" />
             ))}
           </div>
         )}

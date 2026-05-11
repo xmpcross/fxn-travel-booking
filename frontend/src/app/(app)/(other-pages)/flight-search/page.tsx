@@ -912,7 +912,7 @@ function FlightResultCard({
       <div className="flex flex-col justify-between gap-3 border-t border-neutral-100 bg-neutral-50/50 p-4 sm:p-5 lg:border-l lg:border-t-0 dark:border-neutral-800 dark:bg-neutral-900/40">
         <div className="text-right">
           <span className="text-xs text-neutral-500">from</span>
-          <div className="text-lg font-semibold text-rose-600 dark:text-rose-400">
+          <div className="text-lg font-semibold text-[#0046be] dark:text-[#3382ff]">
             {format(item.amount, item.currency)}
           </div>
           <p className="text-xs text-neutral-500">per person, incl. taxes &amp; fees</p>

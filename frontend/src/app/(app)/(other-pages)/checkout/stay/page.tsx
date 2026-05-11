@@ -431,7 +431,7 @@ export default function StayCheckoutPage() {
                   {stars > 0 && (
                     <div className="mb-0.5 flex items-center gap-0.5">
                       {Array.from({ length: Math.round(stars) }).map((_, i) => (
-                        <StarSolid key={i} className="size-3.5 text-orange-500" />
+                        <StarSolid key={i} className="size-3.5 text-[#ffce00]" />
                       ))}
                     </div>
                   )}

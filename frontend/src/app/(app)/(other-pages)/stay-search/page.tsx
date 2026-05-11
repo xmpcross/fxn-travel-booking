@@ -597,7 +597,7 @@ function StarFilter({
             </span>
             <span className="flex">
               {Array.from({ length: n }).map((_, i) => (
-                <StarSolid key={i} className="size-4 text-orange-500" />
+                <StarSolid key={i} className="size-4 text-[#ffce00]" />
               ))}
             </span>
           </button>
@@ -880,7 +880,7 @@ function ResultCard({
           {stars > 0 ? (
             <div className="flex">
               {Array.from({ length: stars }).map((_, i) => (
-                <StarSolid key={i} className="size-4 text-orange-500" />
+                <StarSolid key={i} className="size-4 text-[#ffce00]" />
               ))}
             </div>
           ) : null}
@@ -927,7 +927,7 @@ function ResultCard({
             <div />
           )}
           <div className="text-right">
-            <div className="text-base font-semibold text-rose-600 dark:text-rose-400">
+            <div className="text-base font-semibold text-[#0046be] dark:text-[#3382ff]">
               {format(perNight, currency)}
             </div>
             <p className="text-xs text-neutral-500">per night incl. taxes &amp; fees</p>
