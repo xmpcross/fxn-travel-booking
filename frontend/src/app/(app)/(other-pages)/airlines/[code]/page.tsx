@@ -1,8 +1,9 @@
-import { ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline'
+import { ArrowTopRightOnSquareIcon, StarIcon } from '@heroicons/react/24/outline'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
+import { RoutesFromYourCity } from '@/components/RoutesFromYourCity'
 import { getAirlineSupplement } from '@/data/airlineSupplement'
 import { findAirlineByCode, listAllAirlines, type Airline } from '@/lib/duffel'
 
@@ -442,6 +443,159 @@ export default async function AirlineDetailPage({
           </section>
         ) : null}
 
+        {/* Reviews + baggage row */}
+        {supplement?.review || supplement?.baggagePolicy ? (
+          <section className="mt-4 grid gap-4 lg:grid-cols-3">
+            {supplement.review ? (
+              <div className="rounded-2xl border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
+                <h2 className="text-base font-bold text-neutral-900 dark:text-neutral-100">
+                  Customer rating
+                </h2>
+                <div className="mt-3 flex items-baseline gap-3">
+                  <div className="text-3xl font-bold text-[#0046be] dark:text-[#3382ff]">
+                    {supplement.review.score.toFixed(1)}
+                  </div>
+                  <div className="text-xs text-neutral-500">/ 10</div>
+                  <StarIcon className="ml-1 size-4 text-[#ffce00]" />
+                </div>
+                {supplement.review.count != null ? (
+                  <p className="mt-1 text-xs text-neutral-500">
+                    {supplement.review.count.toLocaleString()} reviews
+                    {supplement.review.source ? ` · ${supplement.review.source}` : ''}
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
+
+            {supplement.baggagePolicy ? (
+              <div className="rounded-2xl border border-neutral-200 bg-white p-5 lg:col-span-2 dark:border-neutral-800 dark:bg-neutral-900">
+                <h2 className="text-base font-bold text-neutral-900 dark:text-neutral-100">
+                  Baggage policy at a glance
+                </h2>
+                <dl className="mt-3 grid grid-cols-1 gap-x-6 gap-y-3 text-sm sm:grid-cols-2">
+                  {supplement.baggagePolicy.cabin ? (
+                    <div>
+                      <dt className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                        Cabin baggage
+                      </dt>
+                      <dd className="mt-1 text-neutral-700 dark:text-neutral-300">
+                        {supplement.baggagePolicy.cabin}
+                      </dd>
+                    </div>
+                  ) : null}
+                  {supplement.baggagePolicy.checked ? (
+                    <div>
+                      <dt className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                        Checked baggage
+                      </dt>
+                      <dd className="mt-1 text-neutral-700 dark:text-neutral-300">
+                        {supplement.baggagePolicy.checked}
+                      </dd>
+                    </div>
+                  ) : null}
+                  {supplement.baggagePolicy.cabinDimensions ? (
+                    <div>
+                      <dt className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                        Cabin dimensions
+                      </dt>
+                      <dd className="mt-1 text-neutral-700 dark:text-neutral-300">
+                        {supplement.baggagePolicy.cabinDimensions}
+                      </dd>
+                    </div>
+                  ) : null}
+                  {supplement.baggagePolicy.extraBagFee ? (
+                    <div>
+                      <dt className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                        Extra bag fee
+                      </dt>
+                      <dd className="mt-1 text-neutral-700 dark:text-neutral-300">
+                        {supplement.baggagePolicy.extraBagFee}
+                      </dd>
+                    </div>
+                  ) : null}
+                </dl>
+                {cocUrl ? (
+                  <p className="mt-3 text-xs text-neutral-500">
+                    Always check the airline&apos;s official{' '}
+                    <a
+                      href={cocUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-orange-600 hover:underline dark:text-orange-400"
+                    >
+                      conditions of carriage
+                    </a>{' '}
+                    before booking — fares and routes can change these rules.
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
+          </section>
+        ) : null}
+
+        {/* Routes from your detected city + recently booked */}
+        <section className="mt-4 grid gap-4 lg:grid-cols-2">
+          <RoutesFromYourCity
+            airlineIata={iata}
+            airlineName={airline.name}
+          />
+
+          {supplement?.sampleBookings?.length ? (
+            <div className="rounded-2xl border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
+              <h2 className="text-base font-bold text-neutral-900 dark:text-neutral-100">
+                Recently booked with {airline.name}
+              </h2>
+              <p className="mt-1 text-xs text-neutral-500">
+                Illustrative — real booking activity will replace these once
+                the database integration is live.
+              </p>
+              <ul className="mt-3 space-y-2">
+                {supplement.sampleBookings.map((b, idx) => (
+                  <li
+                    key={`${b.origin}-${b.destination}-${idx}`}
+                    className="flex items-center justify-between rounded-md border border-neutral-200 px-3 py-2 text-sm dark:border-neutral-700"
+                  >
+                    <span className="text-neutral-700 dark:text-neutral-300">
+                      <span className="font-mono text-xs text-neutral-500">
+                        {b.origin}
+                      </span>{' '}
+                      <span className="text-neutral-400">→</span>{' '}
+                      <span className="font-mono text-xs text-neutral-500">
+                        {b.destination}
+                      </span>
+                    </span>
+                    <span className="text-xs text-neutral-500">{b.when}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+        </section>
+
+        {/* Browse this airline's flights across all our popular destinations */}
+        <section className="mt-4">
+          <div className="rounded-2xl border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2 className="text-base font-bold text-neutral-900 dark:text-neutral-100">
+                  {airline.name} across our destinations
+                </h2>
+                <p className="mt-1 text-xs text-neutral-500">
+                  Browse every popular destination filtered to {airline.name}.
+                </p>
+              </div>
+              {iata ? (
+                <Link
+                  href={`/airlines/${encodeURIComponent(iata)}/destinations`}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-neutral-300 bg-white px-4 py-2 text-sm font-semibold text-neutral-700 hover:border-orange-400 hover:text-orange-600 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200"
+                >
+                  See all destinations
+                  <ArrowTopRightOnSquareIcon className="size-4" />
+                </Link>
+              ) : null}
+            </div>
+          </div>
+        </section>
       </div>
     </main>
   )

@@ -53,6 +53,37 @@ export type AirlineSupplement = {
    * to the airline name lowercased with hyphens if not specified.
    */
   originFactsSlug?: string
+  /**
+   * Aggregated customer review. Curated manually for the top airlines —
+   * source is shown next to the score. score is on a 1.0–10.0 scale to match
+   * the stay-search card convention.
+   */
+  review?: {
+    score: number // 0–10
+    count?: number
+    source?: string // e.g. "Skytrax", "TripAdvisor"
+  }
+  /**
+   * Baggage policy headlines (one row each — terse strings). Render as a
+   * dl on the detail page. Always defer to the airline's CoC for the
+   * definitive rules; this is a quick-reference summary.
+   */
+  baggagePolicy?: {
+    cabin?: string
+    checked?: string
+    cabinDimensions?: string
+    extraBagFee?: string
+  }
+  /**
+   * "Recently booked with this airline" — curated placeholder examples
+   * until a real bookings DB query is wired up. Each entry is rendered
+   * as a small chip: "{origin} → {destination}" + relative timestamp.
+   */
+  sampleBookings?: Array<{
+    origin: string
+    destination: string
+    when: string // human label e.g. "2 hours ago", "today"
+  }>
 }
 
 const SUPPLEMENTS: Record<string, AirlineSupplement> = {
@@ -145,6 +176,17 @@ const SUPPLEMENTS: Record<string, AirlineSupplement> = {
     partners: ['UA', 'NH', 'LH', 'AC', 'VS'],
     subsidiaries: [
       { name: 'Scoot', iata: 'TR' },
+    ],
+    review: { score: 9.2, count: 76000, source: 'Skytrax' },
+    baggagePolicy: {
+      cabin: '1 × 7kg cabin bag + 1 personal item',
+      checked: 'Economy 30kg, Premium 35kg, Business 40kg, Suites 50kg',
+      cabinDimensions: '56 × 36 × 23 cm',
+      extraBagFee: 'From SGD 80 per additional bag',
+    },
+    sampleBookings: [
+      { origin: 'SIN', destination: 'SYD', when: '1 hour ago' },
+      { origin: 'SIN', destination: 'LHR', when: '3 hours ago' },
     ],
   },
   TG: {
@@ -303,6 +345,17 @@ const SUPPLEMENTS: Record<string, AirlineSupplement> = {
     fleetSize: 280,
     fleetTypes: ['Airbus A320 family', 'Airbus A350', 'Airbus A380', 'Boeing 777', 'Boeing 787'],
     partners: ['AA', 'IB', 'QF', 'CX', 'JL'],
+    review: { score: 7.5, count: 56000, source: 'Skytrax' },
+    baggagePolicy: {
+      cabin: '1 × 23kg cabin bag + 1 personal item (most fares)',
+      checked: 'Economy from 23kg, Business 32kg, First 32kg ×2',
+      cabinDimensions: '56 × 45 × 25 cm',
+      extraBagFee: 'From GBP 65 per additional bag',
+    },
+    sampleBookings: [
+      { origin: 'LHR', destination: 'JFK', when: '20 minutes ago' },
+      { origin: 'LHR', destination: 'SYD', when: '2 hours ago' },
+    ],
   },
   QF: {
     alliance: 'oneworld',
@@ -324,6 +377,18 @@ const SUPPLEMENTS: Record<string, AirlineSupplement> = {
     subsidiaries: [
       { name: 'QantasLink' },
       { name: 'Jetstar', iata: 'JQ' },
+    ],
+    review: { score: 8.4, count: 47200, source: 'Skytrax' },
+    baggagePolicy: {
+      cabin: '1 × 7kg carry-on + 1 personal item',
+      checked: 'Economy 23kg, Business 40kg (international)',
+      cabinDimensions: '56 × 36 × 23 cm',
+      extraBagFee: 'From AUD 80 per additional bag',
+    },
+    sampleBookings: [
+      { origin: 'SYD', destination: 'LHR', when: '2 hours ago' },
+      { origin: 'MEL', destination: 'LAX', when: 'today' },
+      { origin: 'BNE', destination: 'SIN', when: '4 hours ago' },
     ],
   },
   JL: {
@@ -572,6 +637,18 @@ const SUPPLEMENTS: Record<string, AirlineSupplement> = {
     fleetSize: 250,
     fleetTypes: ['Airbus A380', 'Boeing 777-300ER', 'Boeing 777-200LR', 'Airbus A350'],
     partners: ['QF', 'JL', 'KE', 'AS'],
+    review: { score: 8.6, count: 89000, source: 'Skytrax' },
+    baggagePolicy: {
+      cabin: '1 × 7kg carry-on (Economy) / 1 × 12kg (Business+)',
+      checked: 'Economy 30kg, Business 40kg, First 50kg',
+      cabinDimensions: '55 × 38 × 20 cm',
+      extraBagFee: 'From USD 100 per additional bag',
+    },
+    sampleBookings: [
+      { origin: 'DXB', destination: 'LHR', when: '1 hour ago' },
+      { origin: 'DXB', destination: 'JFK', when: '3 hours ago' },
+      { origin: 'DXB', destination: 'SYD', when: 'today' },
+    ],
   },
   EY: {
     hubs: [{ iata: 'AUH', name: 'Abu Dhabi' }],
