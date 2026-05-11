@@ -1,12 +1,14 @@
 'use client'
 
-import { MagnifyingGlassIcon } from '@heroicons/react/24/outline'
+import { ArrowRightIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline'
 import Link from 'next/link'
 import { useMemo, useState } from 'react'
 
+import { AirlineGrid } from '@/components/AirlineGrid'
 import type { Airline } from '@/lib/duffel'
 
 const PAGE_SIZE = 60
+const TOP_PREVIEW = 12 // 3 rows × 4 columns
 
 export function AirlinesDirectory({ top, all }: { top: Airline[]; all: Airline[] }) {
   const [query, setQuery] = useState('')
@@ -129,7 +131,18 @@ export function AirlinesDirectory({ top, all }: { top: Airline[]; all: Airline[]
               </h2>
               <span className="text-xs text-neutral-500">{topFiltered.length} carriers</span>
             </div>
-            <AirlineGrid airlines={topFiltered} />
+            <AirlineGrid airlines={topFiltered.slice(0, TOP_PREVIEW)} />
+            {topFiltered.length > TOP_PREVIEW ? (
+              <div className="mt-4 flex justify-end">
+                <Link
+                  href="/airlines/top-50"
+                  className="inline-flex items-center gap-1.5 text-sm font-semibold text-orange-600 hover:underline dark:text-orange-400"
+                >
+                  View all top airlines
+                  <ArrowRightIcon className="size-4" />
+                </Link>
+              </div>
+            ) : null}
           </section>
         ) : null}
 
@@ -172,46 +185,3 @@ export function AirlinesDirectory({ top, all }: { top: Airline[]; all: Airline[]
   )
 }
 
-function AirlineGrid({ airlines }: { airlines: Airline[] }) {
-  return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-      {airlines.map((a) => {
-        const slug = a.iata_code ?? a.id
-        const logo = a.logo_lockup_url ?? a.logo_symbol_url
-        return (
-          <Link
-            key={a.id}
-            href={`/airlines/${encodeURIComponent(slug)}`}
-            className="group flex items-center gap-3 rounded-[4px] border border-neutral-200 bg-white p-3 transition-shadow hover:shadow-md dark:border-neutral-800 dark:bg-neutral-900"
-          >
-            <div className="flex size-12 shrink-0 items-center justify-center rounded-md bg-neutral-50 dark:bg-neutral-800">
-              {logo ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={logo}
-                  alt=""
-                  className="max-h-9 max-w-10 object-contain"
-                  loading="lazy"
-                />
-              ) : (
-                <span className="text-xs font-bold text-neutral-400">
-                  {(a.iata_code ?? '??').slice(0, 2)}
-                </span>
-              )}
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="truncate text-sm font-semibold text-neutral-900 group-hover:text-orange-600 dark:text-neutral-100 dark:group-hover:text-orange-400">
-                {a.name}
-              </div>
-              {a.iata_code ? (
-                <div className="text-xs text-neutral-500">
-                  IATA <span className="font-mono">{a.iata_code}</span>
-                </div>
-              ) : null}
-            </div>
-          </Link>
-        )
-      })}
-    </div>
-  )
-}
