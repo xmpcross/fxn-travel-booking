@@ -14,6 +14,8 @@ export type PopularDestination = {
 }
 
 export const POPULAR_DESTINATIONS: PopularDestination[] = [
+  // Ordered so the wide tiles (London on row 1, Singapore on row 2 — both
+  // get lg:col-span-2 in the renderer) land in the right grid positions.
   {
     name: 'Denpasar',
     iata: 'DPS',
@@ -29,17 +31,24 @@ export const POPULAR_DESTINATIONS: PopularDestination[] = [
     priceUsd: 362,
   },
   {
+    name: 'Melbourne',
+    iata: 'MEL',
+    country: 'Australia',
+    imageUrl: 'https://images.unsplash.com/photo-1545044846-351ba102b6d5?w=800&h=500&fit=crop&auto=format',
+    priceUsd: 312,
+  },
+  {
     name: 'London',
     iata: 'LON',
     country: 'United Kingdom',
-    imageUrl: 'https://images.unsplash.com/photo-1486299267070-83823f5448dd?w=800&h=500&fit=crop&auto=format',
+    imageUrl: 'https://images.unsplash.com/photo-1486299267070-83823f5448dd?w=1200&h=500&fit=crop&auto=format',
     priceUsd: 1489,
   },
   {
     name: 'Singapore',
     iata: 'SIN',
     country: 'Singapore',
-    imageUrl: 'https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=800&h=500&fit=crop&auto=format',
+    imageUrl: 'https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=1200&h=500&fit=crop&auto=format',
     priceUsd: 390,
   },
   {
@@ -48,13 +57,6 @@ export const POPULAR_DESTINATIONS: PopularDestination[] = [
     country: 'Malaysia',
     imageUrl: 'https://images.unsplash.com/photo-1596422846543-75c6fc197f07?w=800&h=500&fit=crop&auto=format',
     priceUsd: 357,
-  },
-  {
-    name: 'Melbourne',
-    iata: 'MEL',
-    country: 'Australia',
-    imageUrl: 'https://images.unsplash.com/photo-1545044846-351ba102b6d5?w=800&h=500&fit=crop&auto=format',
-    priceUsd: 312,
   },
   {
     name: 'Sydney',
