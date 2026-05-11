@@ -912,7 +912,7 @@ function FlightResultCard({
       <div className="flex flex-col justify-between gap-3 border-t border-neutral-100 bg-neutral-50/50 p-4 sm:p-5 lg:border-l lg:border-t-0 dark:border-neutral-800 dark:bg-neutral-900/40">
         <div className="text-right">
           <span className="text-xs text-neutral-500">from</span>
-          <div className="text-2xl font-bold text-rose-600 dark:text-rose-400">
+          <div className="text-lg font-semibold text-rose-600 dark:text-rose-400">
             {format(item.amount, item.currency)}
           </div>
           <p className="text-xs text-neutral-500">per person, incl. taxes &amp; fees</p>
@@ -980,7 +980,7 @@ function FlightLeg({
       </div>
       <div className="grid grid-cols-[auto_1fr_auto] items-center gap-3">
         <div className="text-left">
-          <strong className="text-xl font-bold text-neutral-900 dark:text-neutral-100">
+          <strong className="text-base font-semibold text-neutral-900 dark:text-neutral-100">
             {depTime || '--:--'}
           </strong>
           <div className="text-xs text-neutral-500">{originIata}</div>
@@ -993,7 +993,7 @@ function FlightLeg({
           </span>
         </div>
         <div className="text-right">
-          <strong className="text-xl font-bold text-neutral-900 dark:text-neutral-100">
+          <strong className="text-base font-semibold text-neutral-900 dark:text-neutral-100">
             {arrTime || '--:--'}
             {nextDay ? <span className="ml-1 text-xs text-orange-500">+1</span> : null}
           </strong>
