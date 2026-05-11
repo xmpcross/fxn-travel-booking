@@ -2,6 +2,7 @@
 
 import { Popover, PopoverButton, PopoverPanel } from '@headlessui/react'
 import { AirplaneTakeOffIcon } from '@/components/icons/AirplaneTakeOffIcon'
+import { BedroomIcon } from '@/components/icons/BedroomIcon'
 import clsx from 'clsx'
 import Form from 'next/form'
 import { useRouter } from 'next/navigation'
@@ -87,7 +88,7 @@ const fromIso = (s?: string): Date | null => {
   return new Date(y, m - 1, d)
 }
 
-export const FlightSearchForm: FC<Props> = ({ className, openInNewTab = true, initial }) => {
+export const FlightSearchForm: FC<Props> = ({ className, openInNewTab = true, initial, onSwitchToStays }) => {
   const router = useRouter()
 
   const [tripType, setTripType] = useState<'return' | 'oneway'>(
@@ -203,6 +204,16 @@ export const FlightSearchForm: FC<Props> = ({ className, openInNewTab = true, in
           >
             <AirplaneTakeOffIcon className="size-5" />
           </button>
+          {onSwitchToStays ? (
+            <button
+              type="button"
+              aria-label="Stays"
+              onClick={onSwitchToStays}
+              className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-neutral-300 text-neutral-500 hover:border-orange-500 hover:text-orange-500 dark:border-neutral-700"
+            >
+              <BedroomIcon className="size-5" />
+            </button>
+          ) : null}
         </div>
 
         <div className="flex flex-wrap items-center gap-3">

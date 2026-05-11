@@ -1,6 +1,6 @@
 'use client'
 
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
 
 import { FlightSearchForm } from '@/components/HeroSearchForm/FlightSearchForm'
@@ -25,15 +25,12 @@ export default function FlightsPage() {
 function FlightsContent() {
   const searchParams = useSearchParams()
   const params = searchParams ?? new URLSearchParams()
-  const router = useRouter()
-
   return (
     <main className="bg-neutral-50 pb-16 dark:bg-neutral-950">
       <div className="container py-6">
         <div className="rounded-2xl bg-white p-2 shadow-sm dark:bg-neutral-900">
           <FlightSearchForm
             openInNewTab={false}
-            onSwitchToStays={() => router.push('/stays')}
             initial={{
               origin: params.get('origin') ?? undefined,
               destination: params.get('destination') ?? undefined,
