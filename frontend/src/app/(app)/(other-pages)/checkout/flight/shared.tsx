@@ -1,5 +1,6 @@
 "use client";
 
+import { useCurrency } from "@/contexts/CurrencyContext";
 import type { CreateOrder, Offer, PassengerIdentityDocumentType, SeatMap } from "@duffel/api/types";
 
 export const SELECTION_STORAGE_KEY = "selected-flight-offer";
@@ -516,6 +517,7 @@ export function buildBookingPayload(
 }
 
 export function FlightSummary({ selection }: { selection: StoredFlightSelection }) {
+  const { format } = useCurrency();
   if (!selection.offer) {
     return null;
   }
@@ -534,7 +536,7 @@ export function FlightSummary({ selection }: { selection: StoredFlightSelection 
             </p>
           </div>
           <div className="price">
-            {selection.offer.total_currency} {selection.offer.total_amount}
+            {format(selection.offer.total_amount, selection.offer.total_currency)}
           </div>
         </div>
 

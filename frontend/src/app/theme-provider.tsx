@@ -1,5 +1,6 @@
 'use client'
 
+import { CurrencyProvider } from '@/contexts/CurrencyContext'
 import { APIProvider } from '@vis.gl/react-google-maps'
 import { createContext, useCallback, useEffect, useState } from 'react'
 
@@ -73,16 +74,18 @@ export default function ThemeProvider({ children }: { children: React.ReactNode 
   //
   return (
     <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAP_API_KEY || ''}>
-      <ThemeContext.Provider
-        value={{
-          isDarkMode,
-          toggleDarkMode,
-          themeDir,
-          setThemeDir,
-        }}
-      >
-        {children}
-      </ThemeContext.Provider>
+      <CurrencyProvider>
+        <ThemeContext.Provider
+          value={{
+            isDarkMode,
+            toggleDarkMode,
+            themeDir,
+            setThemeDir,
+          }}
+        >
+          {children}
+        </ThemeContext.Provider>
+      </CurrencyProvider>
     </APIProvider>
   )
 }

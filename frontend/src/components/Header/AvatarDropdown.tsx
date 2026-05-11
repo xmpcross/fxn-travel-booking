@@ -24,8 +24,11 @@ export default function AvatarDropdown({ className }: Props) {
   return (
     <div className={className}>
       <Popover>
-        <PopoverButton className="-m-1.5 flex cursor-pointer items-center justify-center rounded-full p-1.5 hover:bg-neutral-100 focus-visible:outline-hidden dark:hover:bg-neutral-800">
-          <Avatar src={avatarImage.src} className="size-8" />
+        <PopoverButton
+          aria-label="Account menu"
+          className="-m-1.5 flex size-9 cursor-pointer items-center justify-center rounded-full text-neutral-700 hover:bg-neutral-100 focus-visible:outline-hidden dark:text-neutral-200 dark:hover:bg-neutral-800"
+        >
+          <HugeiconsIcon icon={UserIcon} size={22} strokeWidth={1.5} />
         </PopoverButton>
 
         <PopoverPanel

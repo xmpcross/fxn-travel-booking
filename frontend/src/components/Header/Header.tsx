@@ -1,12 +1,11 @@
 import { getStayCategories } from '@/data/categories'
-import { getCurrencies, getLanguages, getNavMegaMenu } from '@/data/navigation'
-import { Button } from '@/shared/Button'
+import { getNavMegaMenu } from '@/data/navigation'
 import Logo from '@/shared/Logo'
 import clsx from 'clsx'
 import { FC } from 'react'
+import Link from 'next/link'
 import AvatarDropdown from './AvatarDropdown'
-import CategoriesDropdown from './CategoriesDropdown'
-import CurrLangDropdown from './CurrLangDropdown'
+import CurrencyPicker from './CurrencyPicker'
 import HamburgerBtnMenu from './HamburgerBtnMenu'
 import MegaMenuPopover from './MegaMenuPopover'
 import NotifyDropdown from './NotifyDropdown'
@@ -17,8 +16,6 @@ interface HeaderProps {
 
 const Header: FC<HeaderProps> = async ({ hasBorderBottom = true, className }) => {
   const megamenu = await getNavMegaMenu()
-  const currencies = await getCurrencies()
-  const languages = await getLanguages()
   const featuredCategory = (await getStayCategories())[7]
 
   return (
@@ -34,9 +31,20 @@ const Header: FC<HeaderProps> = async ({ hasBorderBottom = true, className }) =>
           <div className="flex items-center justify-center gap-x-3 sm:gap-x-8">
             <Logo />
             <div className="hidden h-7 border-l border-neutral-200 md:block dark:border-neutral-700"></div>
-            <div className="hidden md:block">
-              <CategoriesDropdown />
-            </div>
+            <nav className="hidden items-center gap-x-6 md:flex">
+              <Link
+                href="/flights"
+                className="text-base font-medium text-neutral-700 hover:text-neutral-950 dark:text-neutral-300 dark:hover:text-neutral-100"
+              >
+                Flights
+              </Link>
+              <Link
+                href="/stays"
+                className="text-base font-medium text-neutral-700 hover:text-neutral-950 dark:text-neutral-300 dark:hover:text-neutral-100"
+              >
+                Stays
+              </Link>
+            </nav>
           </div>
 
           <div className="flex flex-1 items-center justify-end gap-x-2.5 sm:gap-x-6">
@@ -44,10 +52,7 @@ const Header: FC<HeaderProps> = async ({ hasBorderBottom = true, className }) =>
               <HamburgerBtnMenu />
             </div>
             <MegaMenuPopover megamenu={megamenu} featuredCategory={featuredCategory} />
-            <CurrLangDropdown currencies={currencies} languages={languages} className="hidden md:block" />
-            <Button className="-mx-1 py-1.75!" color="light" href={'/add-listing/1'}>
-              List your property
-            </Button>
+            <CurrencyPicker className="hidden md:block" />
             <NotifyDropdown />
             <AvatarDropdown />
           </div>

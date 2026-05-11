@@ -6,7 +6,7 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-outfit), ui-sans-serif, system-ui, sans-serif;
 
   /* Global 4px corner radius for boxes, cards, images, popovers.
      `rounded-full` is unaffected (it uses 9999px, not these tokens), so

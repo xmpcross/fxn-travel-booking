@@ -10,6 +10,8 @@ interface Props {
   startDate: Date | null
   endDate: Date | null
   onChange: (range: { start: Date | null; end: Date | null }) => void
+  startLabel?: string
+  endLabel?: string
 }
 
 const labelClass = 'mb-1.5 block text-sm font-medium text-neutral-700 dark:text-neutral-300'
@@ -26,7 +28,14 @@ function formatDate(d: Date | null): string {
   })
 }
 
-export const DateRangePopover: FC<Props> = ({ tripType, startDate, endDate, onChange }) => {
+export const DateRangePopover: FC<Props> = ({
+  tripType,
+  startDate,
+  endDate,
+  onChange,
+  startLabel = 'Departure',
+  endLabel = 'Return',
+}) => {
   const today = new Date()
   today.setHours(0, 0, 0, 0)
 
@@ -44,7 +53,7 @@ export const DateRangePopover: FC<Props> = ({ tripType, startDate, endDate, onCh
       {/* Triggers — both open the same popover */}
       <div className={clsx('grid gap-3', tripType === 'return' ? 'grid-cols-2' : 'grid-cols-1')}>
         <div>
-          <label className={labelClass}>Departure</label>
+          <label className={labelClass}>{startLabel}</label>
           <PopoverButton className={triggerClass} type="button">
             {startDate ? (
               formatDate(startDate)
@@ -55,7 +64,7 @@ export const DateRangePopover: FC<Props> = ({ tripType, startDate, endDate, onCh
         </div>
         {tripType === 'return' && (
           <div>
-            <label className={labelClass}>Return</label>
+            <label className={labelClass}>{endLabel}</label>
             <PopoverButton className={triggerClass} type="button">
               {endDate ? (
                 formatDate(endDate)

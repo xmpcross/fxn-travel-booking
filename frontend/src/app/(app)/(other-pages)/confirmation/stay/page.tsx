@@ -1,5 +1,6 @@
 "use client";
 
+import { useCurrency } from "@/contexts/CurrencyContext";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -27,6 +28,7 @@ type StoredConfirmation = {
 const CONFIRMATION_KEY = "stay-confirmation";
 
 export default function StayConfirmationPage() {
+  const { format } = useCurrency();
   const [confirmation, setConfirmation] = useState<StoredConfirmation | null>(null);
   const [hydrated, setHydrated] = useState(false);
 
@@ -107,9 +109,7 @@ export default function StayConfirmationPage() {
               </p>
             ) : null}
             {quote?.total_amount ? (
-              <div className="price">
-                {quote.total_currency} {quote.total_amount}
-              </div>
+              <div className="price">{format(quote.total_amount, quote.total_currency)}</div>
             ) : null}
             {quote?.cancellation_timeline?.length ? (
               <p className="muted" style={{ marginTop: 8 }}>

@@ -216,6 +216,108 @@ export async function searchStays(input: StaySearchInput) {
   return [];
 }
 
+// Duffel's /stays/search response includes only `cheapest_rate_total_amount` —
+// it does NOT include the rate `id` required by /stays/quotes. The actual
+// rates (with IDs) live behind a separate endpoint: POST
+// /stays/search_results/{id}/actions/fetch_all_rates.
+
+// Full envelope: { accommodation: { rooms: [{ name, beds, photos, rates: [...] }] }, cheapest_rate_*, ... }
+export async function fetchStayDetails(searchResultId: string) {
+  const response = await fetch(
+    `${DUFFEL_API_BASE_URL}/stays/search_results/${encodeURIComponent(searchResultId)}/actions/fetch_all_rates`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${getAccessToken()}`,
+        "Duffel-Version": "v2",
+        "Content-Type": "application/json",
+        Accept: "application/json"
+      },
+      body: JSON.stringify({}),
+      cache: "no-store"
+    }
+  );
+
+  const responseText = await response.text();
+  let parsed: unknown = null;
+  try {
+    parsed = JSON.parse(responseText);
+  } catch {
+    parsed = null;
+  }
+
+  if (!response.ok) {
+    if (parsed && typeof parsed === "object" && "errors" in parsed) {
+      const errors = (parsed as { errors?: Array<{ message?: string; title?: string }> }).errors ?? [];
+      const message = errors.map((item) => item.message ?? item.title).filter(Boolean).join(", ");
+      throw new Error(message || `Duffel fetch_all_rates failed with status ${response.status}`);
+    }
+    throw new Error(responseText || `Duffel fetch_all_rates failed with status ${response.status}`);
+  }
+
+  if (parsed && typeof parsed === "object" && "data" in parsed) {
+    return (parsed as { data: unknown }).data;
+  }
+  return null;
+}
+
+export async function fetchStayRates(searchResultId: string) {
+  const response = await fetch(
+    `${DUFFEL_API_BASE_URL}/stays/search_results/${encodeURIComponent(searchResultId)}/actions/fetch_all_rates`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${getAccessToken()}`,
+        "Duffel-Version": "v2",
+        "Content-Type": "application/json",
+        Accept: "application/json"
+      },
+      // Endpoint accepts no body; some Duffel actions still require an empty
+      // JSON object so the server picks up Content-Type correctly.
+      body: JSON.stringify({}),
+      cache: "no-store"
+    }
+  );
+
+  const responseText = await response.text();
+  let parsed: unknown = null;
+  try {
+    parsed = JSON.parse(responseText);
+  } catch {
+    parsed = null;
+  }
+
+  if (!response.ok) {
+    if (parsed && typeof parsed === "object" && "errors" in parsed) {
+      const errors = (parsed as { errors?: Array<{ message?: string; title?: string }> }).errors ?? [];
+      const message = errors.map((item) => item.message ?? item.title).filter(Boolean).join(", ");
+      throw new Error(message || `Duffel fetch_all_rates failed with status ${response.status}`);
+    }
+    throw new Error(responseText || `Duffel fetch_all_rates failed with status ${response.status}`);
+  }
+
+  if (parsed && typeof parsed === "object" && "data" in parsed) {
+    const data = (parsed as { data?: unknown }).data;
+    // Duffel sometimes returns the full search-result envelope here; the rates
+    // live at .accommodation.rooms[].rates[] OR at .rates[] depending on version.
+    // Probe both shapes and flatten to a single rates array.
+    if (Array.isArray(data)) {
+      return data as Array<{ id: string; total_amount?: string; total_currency?: string }>;
+    }
+    if (data && typeof data === "object") {
+      const obj = data as Record<string, unknown>;
+      if (Array.isArray(obj.rates)) return obj.rates as Array<{ id: string; total_amount?: string; total_currency?: string }>;
+      const acc = obj.accommodation as Record<string, unknown> | undefined;
+      const rooms = acc?.rooms as Array<Record<string, unknown>> | undefined;
+      if (Array.isArray(rooms)) {
+        return rooms.flatMap((r) => (Array.isArray(r.rates) ? (r.rates as Array<{ id: string; total_amount?: string; total_currency?: string }>) : []));
+      }
+    }
+  }
+
+  return [] as Array<{ id: string; total_amount?: string; total_currency?: string }>;
+}
+
 async function resolveStayCoordinates(input: StaySearchInput): Promise<ResolvedCoordinates> {
   if (typeof input.latitude === "number" && typeof input.longitude === "number") {
     return {

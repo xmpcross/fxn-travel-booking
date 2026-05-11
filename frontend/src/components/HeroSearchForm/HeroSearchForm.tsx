@@ -1,12 +1,30 @@
-import clsx from 'clsx'
-import { FlightSearchForm } from './FlightSearchForm'
+'use client'
 
-// Single-vertical product (flights only). Kept as a thin wrapper so existing call
-// sites (Header, home page, HeroSearchFormSmall) don't have to change.
+import clsx from 'clsx'
+import { useState } from 'react'
+import { FlightSearchForm } from './FlightSearchForm'
+import { StaySearchForm } from './StaySearchForm'
+
+type Mode = 'flights' | 'stays'
+
 const HeroSearchForm = ({ className }: { className?: string }) => {
+  const [mode, setMode] = useState<Mode>('flights')
+
   return (
     <div className={clsx('hero-search-form', className)}>
-      <FlightSearchForm formStyle="default" className="shadow-md" />
+      {mode === 'flights' ? (
+        <FlightSearchForm
+          formStyle="default"
+          className="shadow-md"
+          onSwitchToStays={() => setMode('stays')}
+        />
+      ) : (
+        <StaySearchForm
+          formStyle="default"
+          className="shadow-md"
+          onSwitchToFlights={() => setMode('flights')}
+        />
+      )}
     </div>
   )
 }

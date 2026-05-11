@@ -21,13 +21,19 @@ interface Props {
 
 const formatPlace = (p: Place): string => `${p.city_name || p.name} (${p.iata_code})`
 
-export const SimpleAirportInput: FC<Props> = ({ inputName, label, placeholder = '', defaultValue = '' }) => {
-  // What the user sees in the input. After selection this is "Sydney (SYD)";
-  // while typing it's whatever they're typing.
+// The Duffel Stays search endpoint geocodes a free-text "destinationQuery"
+// via Nominatim, which resolves city/area names well but not bare IATA codes.
+// So on selection we submit the city/place name, not the IATA code.
+const submittedValueFor = (p: Place): string => p.city_name || p.name
+
+export const StayDestinationInput: FC<Props> = ({
+  inputName,
+  label,
+  placeholder = '',
+  defaultValue = '',
+}) => {
   const [displayValue, setDisplayValue] = useState(defaultValue)
-  // The IATA code that actually gets submitted. Mirrors the user's typing
-  // (uppercased) when no selection has been made, or the selected place's code.
-  const [iataValue, setIataValue] = useState(defaultValue.toUpperCase())
+  const [submitValue, setSubmitValue] = useState(defaultValue)
   const [places, setPlaces] = useState<Place[]>([])
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -69,37 +75,39 @@ export const SimpleAirportInput: FC<Props> = ({ inputName, label, placeholder = 
 
   useEffect(() => () => fetchPlaces.cancel(), [fetchPlaces])
 
-  // If geolocation resolves an initial IATA code after mount, fetch its full
-  // name once so we can show "Perth (PER)" instead of just "PER".
+  // If an IATA-style default comes in (e.g. from IP geolocation),
+  // resolve it to a city name once so the user sees "Bangkok (BKK)".
   useEffect(() => {
     if (!defaultValue || hasSelection) return
+    if (defaultValue.length < 2) return
     let cancelled = false
     ;(async () => {
       try {
         const r = await fetch(`/api/places/suggestions?q=${encodeURIComponent(defaultValue)}`)
         if (!r.ok) return
         const json = (await r.json()) as { data?: Place[] }
-        const match = json.data?.find((p) => p.iata_code.toUpperCase() === defaultValue.toUpperCase())
+        const match =
+          json.data?.find((p) => p.iata_code.toUpperCase() === defaultValue.toUpperCase()) ??
+          json.data?.[0]
         if (match && !cancelled) {
           setDisplayValue(formatPlace(match))
-          setIataValue(match.iata_code)
+          setSubmitValue(submittedValueFor(match))
           setHasSelection(true)
         }
       } catch {
-        // Network/parse error — leave the IATA-only display as-is.
+        // Network/parse error — leave the typed display in place.
       }
     })()
     return () => {
       cancelled = true
     }
-    // Run once when defaultValue is first available.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [defaultValue])
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const next = e.target.value
     setDisplayValue(next)
-    setIataValue(next.toUpperCase())
+    setSubmitValue(next)
     setHasSelection(false)
     setOpen(true)
     fetchPlaces(next)
@@ -107,7 +115,7 @@ export const SimpleAirportInput: FC<Props> = ({ inputName, label, placeholder = 
 
   const select = (p: Place) => {
     setDisplayValue(formatPlace(p))
-    setIataValue(p.iata_code)
+    setSubmitValue(submittedValueFor(p))
     setHasSelection(true)
     setOpen(false)
     setPlaces([])
@@ -115,7 +123,7 @@ export const SimpleAirportInput: FC<Props> = ({ inputName, label, placeholder = 
 
   const clear = () => {
     setDisplayValue('')
-    setIataValue('')
+    setSubmitValue('')
     setHasSelection(false)
     setPlaces([])
     setOpen(false)
@@ -124,7 +132,9 @@ export const SimpleAirportInput: FC<Props> = ({ inputName, label, placeholder = 
 
   return (
     <div className="relative" ref={containerRef}>
-      <label className="mb-1.5 block text-sm font-medium text-neutral-700 dark:text-neutral-300">{label}</label>
+      <label className="mb-1.5 block text-sm font-medium text-neutral-700 dark:text-neutral-300">
+        {label}
+      </label>
       <div className="relative">
         <input
           ref={inputRef}
@@ -148,9 +158,7 @@ export const SimpleAirportInput: FC<Props> = ({ inputName, label, placeholder = 
           </button>
         )}
       </div>
-      {/* Hidden field carries the IATA code to the form submission, so
-          downstream `formData.get(inputName)` keeps returning a code. */}
-      <input type="hidden" name={inputName} value={iataValue} />
+      <input type="hidden" name={inputName} value={submitValue} />
       {open && (loading || places.length > 0) && (
         <div className="absolute z-30 mt-1 max-h-72 w-full min-w-72 overflow-y-auto rounded-lg border border-neutral-200 bg-white shadow-lg dark:border-neutral-700 dark:bg-neutral-800">
           {loading && places.length === 0 ? (

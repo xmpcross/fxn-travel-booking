@@ -6,7 +6,6 @@ const navigation: {
   solutions: { name: string; href: string }[]
   support: { name: string; href: string }[]
   company: { name: string; href: string }[]
-  legal: { name: string; href: string }[]
   social: {
     name: string
     href: string
@@ -14,10 +13,11 @@ const navigation: {
   }[]
 } = {
   solutions: [
-    { name: 'Marketing', href: '#' },
-    { name: 'Analytics', href: '#' },
-    { name: 'Automation', href: '#' },
-    { name: 'Commerce', href: '#' },
+    { name: 'Home', href: '/' },
+    { name: 'About', href: '/about' },
+    { name: 'How we work', href: '/how-we-work' },
+    { name: 'News', href: '/news' },
+    { name: 'Contact', href: '/contact' },
   ],
   support: [
     { name: 'Submit ticket', href: '#' },
@@ -29,12 +29,6 @@ const navigation: {
     { name: 'Blog', href: '#' },
     { name: 'Jobs', href: '#' },
     { name: 'Press', href: '#' },
-  ],
-  legal: [
-    { name: 'Terms of service', href: '#' },
-    { name: 'Privacy policy', href: '#' },
-    { name: 'License', href: '#' },
-    { name: 'Insights', href: '#' },
   ],
   social: [
     {
@@ -105,8 +99,8 @@ export default function Footer2() {
   return (
     <footer className="border-t border-neutral-200 dark:border-neutral-700">
       <div className="container pt-16 pb-8 sm:pt-24 lg:pt-32">
-        <div className="xl:grid xl:grid-cols-3 xl:gap-8">
-          <div className="space-y-8">
+        <div className="grid grid-cols-1 gap-12 sm:grid-cols-3 sm:gap-8 xl:grid-cols-[5fr_2fr_2fr_1fr]">
+          <div className="space-y-8 sm:col-span-3 xl:col-span-1">
             <Logo className="w-20" />
             <p className="text-sm/6 text-balance text-gray-600 dark:text-neutral-400">
               Making the world a better place through constructing elegant hierarchies.
@@ -120,65 +114,79 @@ export default function Footer2() {
               ))}
             </div>
           </div>
-          <div className="mt-16 grid grid-cols-2 gap-8 xl:col-span-2 xl:mt-0">
-            <div className="md:grid md:grid-cols-2 md:gap-8">
-              <div>
-                <h3 className="text-sm/6 font-semibold text-gray-900 dark:text-neutral-300">Solutions</h3>
-                <ul role="list" className="mt-6 space-y-4">
-                  {navigation.solutions.map((item) => (
-                    <li key={item.name}>
-                      <a href={item.href} className="text-sm/6 text-gray-600 hover:text-gray-900 dark:text-neutral-400">
-                        {item.name}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div className="mt-10 md:mt-0">
-                <h3 className="text-sm/6 font-semibold text-gray-900 dark:text-neutral-300">Support</h3>
-                <ul role="list" className="mt-6 space-y-4">
-                  {navigation.support.map((item) => (
-                    <li key={item.name}>
-                      <a href={item.href} className="text-sm/6 text-gray-600 hover:text-gray-900 dark:text-neutral-400">
-                        {item.name}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-            <div className="md:grid md:grid-cols-2 md:gap-8">
-              <div>
-                <h3 className="text-sm/6 font-semibold text-gray-900 dark:text-neutral-300">Company</h3>
-                <ul role="list" className="mt-6 space-y-4">
-                  {navigation.company.map((item) => (
-                    <li key={item.name}>
-                      <a href={item.href} className="text-sm/6 text-gray-600 hover:text-gray-900 dark:text-neutral-400">
-                        {item.name}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div className="mt-10 md:mt-0">
-                <h3 className="text-sm/6 font-semibold text-gray-900 dark:text-neutral-300">Legal</h3>
-                <ul role="list" className="mt-6 space-y-4">
-                  {navigation.legal.map((item) => (
-                    <li key={item.name}>
-                      <a href={item.href} className="text-sm/6 text-gray-600 hover:text-gray-900 dark:text-neutral-400">
-                        {item.name}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
+          <div>
+            <h3 className="text-lg/7 font-semibold text-gray-900 dark:text-neutral-300">Company</h3>
+            <ul role="list" className="mt-6 space-y-4">
+              {navigation.solutions.map((item) => (
+                <li key={item.name}>
+                  <a href={item.href} className="text-sm/6 font-light underline text-gray-600 hover:text-gray-900 dark:text-neutral-400">
+                    {item.name}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <h3 className="text-lg/7 font-semibold text-gray-900 dark:text-neutral-300">Support</h3>
+            <ul role="list" className="mt-6 space-y-4">
+              <li>
+                <a
+                  href="/help"
+                  className="text-sm/6 font-light underline text-gray-600 hover:text-gray-900 dark:text-neutral-400"
+                >
+                  Help/FAQ
+                </a>
+              </li>
+              <li>
+                <a
+                  href="/advertise"
+                  className="text-sm/6 font-light underline text-gray-600 hover:text-gray-900 dark:text-neutral-400"
+                >
+                  Advertise with us
+                </a>
+              </li>
+            </ul>
+          </div>
+          <div>
+            <h3 className="text-lg/7 font-semibold text-gray-900 dark:text-neutral-300">Useful Links</h3>
+            <ul role="list" className="mt-6 space-y-4">
+              <li>
+                <a
+                  href="/airlines"
+                  className="text-sm/6 font-light underline text-gray-600 hover:text-gray-900 dark:text-neutral-400"
+                >
+                  Airlines
+                </a>
+              </li>
+              <li>
+                <a
+                  href="/low-fare-tips"
+                  className="text-sm/6 font-light underline text-gray-600 hover:text-gray-900 dark:text-neutral-400"
+                >
+                  Low fare tips
+                </a>
+              </li>
+            </ul>
           </div>
         </div>
-        <div className="mt-16 border-t border-gray-900/10 pt-8 sm:mt-20 lg:mt-24 dark:border-gray-700">
+        <div className="mt-16 flex flex-col items-start gap-4 border-t border-gray-900/10 pt-8 sm:mt-20 sm:flex-row sm:items-center sm:justify-between lg:mt-24 dark:border-gray-700">
           <p className="text-sm/6 text-gray-600 dark:text-neutral-400">
-            &copy; 2026 Your Company, Inc. All rights reserved.
+            &copy; 2026 NXT.DEALS. All rights reserved.
           </p>
+          <nav className="flex items-center gap-x-6 text-sm/6">
+            <a
+              href="/terms"
+              className="text-gray-600 hover:text-gray-900 dark:text-neutral-400 dark:hover:text-neutral-200"
+            >
+              Terms &amp; Conditions
+            </a>
+            <a
+              href="/privacy"
+              className="text-gray-600 hover:text-gray-900 dark:text-neutral-400 dark:hover:text-neutral-200"
+            >
+              Privacy Policy
+            </a>
+          </nav>
         </div>
       </div>
     </footer>

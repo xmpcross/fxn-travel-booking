@@ -1,9 +1,8 @@
 'use client'
 
 import { Popover, PopoverButton, PopoverPanel } from '@headlessui/react'
-import { Hotel01Icon } from '@hugeicons/core-free-icons'
-import { HugeiconsIcon } from '@hugeicons/react'
-import { PaperAirplaneIcon } from '@heroicons/react/24/solid'
+import { AirplaneTakeOffIcon } from '@/components/icons/AirplaneTakeOffIcon'
+import { BedroomIcon } from '@/components/icons/BedroomIcon'
 import clsx from 'clsx'
 import Form from 'next/form'
 import { useRouter } from 'next/navigation'
@@ -33,6 +32,8 @@ interface Props {
   openInNewTab?: boolean
   /** Pre-populate fields (e.g. from current search params on the results page). */
   initial?: FlightSearchFormInitial
+  /** Called when the user clicks the Stays tab to switch verticals. */
+  onSwitchToStays?: () => void
 }
 
 const CABIN_LABEL: Record<CabinClass, string> = {
@@ -94,7 +95,7 @@ const fromIso = (s?: string): Date | null => {
   return new Date(y, m - 1, d)
 }
 
-export const FlightSearchForm: FC<Props> = ({ className, openInNewTab = true, initial }) => {
+export const FlightSearchForm: FC<Props> = ({ className, openInNewTab = true, initial, onSwitchToStays }) => {
   const router = useRouter()
 
   const [tripType, setTripType] = useState<'return' | 'oneway'>(
@@ -200,15 +201,15 @@ export const FlightSearchForm: FC<Props> = ({ className, openInNewTab = true, in
             aria-label="Flights"
             className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-500 text-white shadow-sm"
           >
-            <PaperAirplaneIcon className="size-5 -rotate-45" />
+            <AirplaneTakeOffIcon className="size-5" />
           </button>
           <button
             type="button"
-            aria-label="Stays — coming soon"
-            disabled
-            className="flex h-10 w-10 cursor-not-allowed items-center justify-center rounded-full border border-neutral-300 text-neutral-400 dark:border-neutral-700"
+            aria-label="Stays"
+            onClick={onSwitchToStays}
+            className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-neutral-300 text-neutral-500 hover:border-orange-500 hover:text-orange-500 dark:border-neutral-700"
           >
-            <HugeiconsIcon icon={Hotel01Icon} className="size-5" strokeWidth={1.5} />
+            <BedroomIcon className="size-5" />
           </button>
         </div>
 
