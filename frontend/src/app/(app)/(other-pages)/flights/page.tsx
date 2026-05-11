@@ -4,6 +4,7 @@ import { useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
 
 import { FlightSearchForm } from '@/components/HeroSearchForm/FlightSearchForm'
+import { PopularDestinations } from '@/components/PopularDestinations'
 
 type CabinClass = 'economy' | 'premium_economy' | 'business' | 'first'
 const VALID_CABINS: CabinClass[] = ['economy', 'premium_economy', 'business', 'first']
@@ -46,6 +47,8 @@ function FlightsContent() {
             }}
           />
         </div>
+
+        <PopularDestinations />
       </div>
     </main>
   )
