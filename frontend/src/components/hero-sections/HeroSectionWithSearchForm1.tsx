@@ -23,7 +23,7 @@ const HeroSectionWithSearchForm1 = ({
   return (
     <div className={clsx('relative flex flex-col-reverse pt-10 lg:flex-col lg:pt-12', className)}>
       <div className="flex flex-col lg:flex-row">
-        <div className="relative flex w-full flex-col items-start gap-y-8 pb-16 lg:pe-10 lg:pt-12 lg:pb-60 xl:gap-y-10 xl:pe-14">
+        <div className="relative flex w-full flex-col items-start gap-y-8 pb-16 lg:pe-10 lg:pt-12 lg:pb-44 xl:gap-y-10 xl:pe-14">
           <h2
             className="text-[3rem]/[1.15] font-medium tracking-tight text-pretty"
             dangerouslySetInnerHTML={{ __html: heading || '' }}
