@@ -4,6 +4,7 @@ import { useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
 
 import BgGlassmorphism from '@/components/BgGlassmorphism'
+import { FlightDestinationsSection } from '@/components/FlightDestinationsSection'
 import HeroSectionWithSearchForm1 from '@/components/hero-sections/HeroSectionWithSearchForm1'
 import { FlightSearchForm } from '@/components/HeroSearchForm/FlightSearchForm'
 import { PopularDestinations } from '@/components/PopularDestinations'
@@ -73,6 +74,8 @@ function FlightsContent() {
         <TravelProsSection />
 
         <PopularDestinations />
+
+        <FlightDestinationsSection />
       </div>
     </main>
   )

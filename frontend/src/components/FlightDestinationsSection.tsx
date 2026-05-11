@@ -1,7 +1,7 @@
 'use client'
 
 import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/react'
-import { ChevronDownIcon } from '@heroicons/react/24/outline'
+import { ChevronDownIcon, SparklesIcon } from '@heroicons/react/24/outline'
 import { useEffect, useMemo, useState } from 'react'
 
 const DEFAULT_ORIGIN_IATA = 'PER'
@@ -100,11 +100,24 @@ export function FlightDestinationsSection() {
       adults: '1',
       cabinClass: 'economy',
     })
-    return `/flights?${qs.toString()}`
+    return `/flight-search?${qs.toString()}`
   }
 
   return (
-    <section>
+    <section className="relative">
+      {/* Sticky deal chip — bottom-right of the viewport, anchored within
+          this section so it only shows while the destinations grid is on
+          screen. Mirrors the Kayak "Cheapest direct flights to X" hint. */}
+      <a
+        href={buildFlightHref(detectedOrigin, 'LON')}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="pointer-events-auto sticky bottom-6 z-20 float-right ml-auto mt-8 inline-flex items-center gap-2 rounded-full border border-orange-300 bg-white px-4 py-2 text-xs font-semibold text-neutral-800 shadow-md hover:border-orange-400 hover:text-orange-600 dark:border-orange-700 dark:bg-neutral-900 dark:text-neutral-100"
+      >
+        <SparklesIcon className="size-4 text-orange-500" />
+        Cheapest direct flights to London
+      </a>
+
       <h2 className="text-2xl font-bold text-neutral-900 sm:text-3xl dark:text-neutral-100">
         Search cheap flights by destination
       </h2>
