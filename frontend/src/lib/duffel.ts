@@ -439,3 +439,65 @@ export async function getStayBooking(bookingId: string) {
   const response = await duffel.stays.bookings.get(bookingId);
   return response.data;
 }
+
+// --- Airlines reference data -----------------------------------------------
+
+export type Airline = {
+  id: string;
+  name: string;
+  iata_code: string | null;
+  logo_symbol_url: string | null;
+  logo_lockup_url: string | null;
+  conditions_of_carriage_url: string | null;
+};
+
+// Fetches every airline page from /air/airlines, with a 24h server-side
+// fetch cache. Done via direct REST (not the SDK) because we need to opt
+// into Next.js's revalidate-based caching to avoid a per-request flood
+// of pagination calls.
+export async function listAllAirlines(): Promise<Airline[]> {
+  const all: Airline[] = [];
+  let after: string | undefined;
+  // Hard cap to stop runaway loops if Duffel ever returns a cursor that
+  // never terminates. ~6000 airlines covers the entire industry.
+  for (let page = 0; page < 50; page++) {
+    const url = new URL(`${DUFFEL_API_BASE_URL}/air/airlines`);
+    url.searchParams.set("limit", "200");
+    if (after) url.searchParams.set("after", after);
+
+    const response = await fetch(url.toString(), {
+      headers: {
+        Authorization: `Bearer ${getAccessToken()}`,
+        "Duffel-Version": "v2",
+        Accept: "application/json",
+      },
+      next: { revalidate: 86_400, tags: ["duffel-airlines"] },
+    });
+
+    if (!response.ok) {
+      throw new Error(
+        `Duffel /air/airlines failed with status ${response.status}`,
+      );
+    }
+
+    const payload = (await response.json()) as {
+      data?: Airline[];
+      meta?: { after?: string | null };
+    };
+    if (payload.data) all.push(...payload.data);
+    const next = payload.meta?.after ?? null;
+    if (!next) break;
+    after = next;
+  }
+  return all;
+}
+
+export async function findAirlineByCode(code: string): Promise<Airline | null> {
+  const all = await listAllAirlines();
+  const upper = code.toUpperCase();
+  return (
+    all.find(
+      (a) => a.id === code || (a.iata_code ? a.iata_code.toUpperCase() === upper : false),
+    ) ?? null
+  );
+}
