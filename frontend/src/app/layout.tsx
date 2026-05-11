@@ -1,7 +1,7 @@
 import '@/styles/tailwind.css'
 import '@/styles/duffel.css'
 import { Metadata } from 'next'
-import { Inter, Outfit } from 'next/font/google'
+import { Inter, Outfit, Urbanist } from 'next/font/google'
 import 'rc-slider/assets/index.css'
 import 'react-datepicker/dist/react-datepicker.css'
 import ThemeProvider from './theme-provider'
@@ -27,6 +27,15 @@ const outfit = Outfit({
   variable: '--font-outfit',
 })
 
+// Urbanist is the heading typeface — applied to h1..h3 only via the
+// @layer base rule in tailwind.css. h4..h6 keep the default Inter family.
+const urbanist = Urbanist({
+  subsets: ['latin'],
+  display: 'swap',
+  weight: ['700'],
+  variable: '--font-urbanist',
+})
+
 export const metadata: Metadata = {
   title: {
     template: '%s — NXT.Deals',
@@ -37,7 +46,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} ${outfit.variable} font-sans`}>
+    <html lang="en" className={`${inter.variable} ${outfit.variable} ${urbanist.variable} font-sans`}>
       <body className="bg-white text-neutral-900 dark:bg-neutral-900 dark:text-neutral-100">
         <ThemeProvider>{children}</ThemeProvider>
       </body>
