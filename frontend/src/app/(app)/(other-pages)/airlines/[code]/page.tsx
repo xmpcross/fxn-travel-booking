@@ -127,8 +127,27 @@ export default async function AirlineDetailPage({
           </div>
         </section>
 
+        {/* Overview — longer-form copy about the airline */}
+        {supplement?.overview?.length ? (
+          <section className="mt-6 rounded-2xl border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900 sm:p-6">
+            <h2 className="text-base font-bold text-neutral-900 dark:text-neutral-100">
+              Overview
+            </h2>
+            <div className="mt-4 space-y-4">
+              {supplement.overview.map((para, i) => (
+                <p
+                  key={i}
+                  className="text-sm leading-relaxed text-neutral-700 dark:text-neutral-300"
+                >
+                  {para}
+                </p>
+              ))}
+            </div>
+          </section>
+        ) : null}
+
         {/* About + supplement */}
-        <section className="mt-6 grid gap-4 lg:grid-cols-2">
+        <section className="mt-4 grid gap-4 lg:grid-cols-2">
           <div className="rounded-2xl border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
             <h2 className="text-base font-bold text-neutral-900 dark:text-neutral-100">
               About this airline
@@ -208,6 +227,21 @@ export default async function AirlineDetailPage({
                         className="font-medium text-orange-600 hover:underline dark:text-orange-400"
                       >
                         {supplement.website}
+                      </a>
+                    </dd>
+                  </>
+                ) : null}
+                {supplement.phone ? (
+                  <>
+                    <dt className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                      Phone
+                    </dt>
+                    <dd className="text-neutral-900 dark:text-neutral-100">
+                      <a
+                        href={`tel:${supplement.phone.replace(/\s+/g, '')}`}
+                        className="font-medium text-orange-600 hover:underline dark:text-orange-400"
+                      >
+                        {supplement.phone}
                       </a>
                     </dd>
                   </>

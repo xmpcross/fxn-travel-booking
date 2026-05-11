@@ -35,6 +35,15 @@ export type AirlineSupplement = {
   callsign?: string
   /** Homepage URL without protocol prefix (e.g. "qantas.com"). */
   website?: string
+  /** Customer service phone (international format, e.g. "+61 2 9691 3636"). */
+  phone?: string
+  /**
+   * Longer-form "About this airline" copy — 3–5 short paragraphs of public
+   * background (history, network scope, fleet/cabin highlights, notable
+   * notes). Rendered in a dedicated card on the detail page. Plain strings,
+   * each element = one paragraph.
+   */
+  overview?: string[]
   /** Frequent-flyer programme name (e.g. "Qantas Frequent Flyer", "Skywards"). */
   loyaltyProgramme?: string
   /** Cabin classes the airline regularly sells. */
@@ -100,6 +109,7 @@ const SUPPLEMENTS: Record<string, AirlineSupplement> = {
     icao: 'DLH',
     callsign: 'Lufthansa',
     website: 'lufthansa.com',
+    phone: '+49 69 86 799 799',
     loyaltyProgramme: 'Miles & More',
     cabinClasses: ['Economy', 'Premium Economy', 'Business', 'First'],
     fleetSize: 280,
@@ -125,6 +135,7 @@ const SUPPLEMENTS: Record<string, AirlineSupplement> = {
     icao: 'UAL',
     callsign: 'United',
     website: 'united.com',
+    phone: '+1 800 864 8331',
     loyaltyProgramme: 'MileagePlus',
     cabinClasses: ['Economy', 'Premium Economy', 'Business', 'First'],
     fleetSize: 950,
@@ -154,6 +165,7 @@ const SUPPLEMENTS: Record<string, AirlineSupplement> = {
     icao: 'ANA',
     callsign: 'All Nippon',
     website: 'ana.co.jp',
+    phone: '+81 3 6741 1120',
     loyaltyProgramme: 'ANA Mileage Club',
     cabinClasses: ['Economy', 'Premium Economy', 'Business', 'First'],
     fleetSize: 215,
@@ -169,6 +181,7 @@ const SUPPLEMENTS: Record<string, AirlineSupplement> = {
     icao: 'SIA',
     callsign: 'Singapore',
     website: 'singaporeair.com',
+    phone: '+65 6223 8888',
     loyaltyProgramme: 'KrisFlyer',
     cabinClasses: ['Economy', 'Premium Economy', 'Business', 'First'],
     fleetSize: 145,
@@ -176,6 +189,12 @@ const SUPPLEMENTS: Record<string, AirlineSupplement> = {
     partners: ['UA', 'NH', 'LH', 'AC', 'VS'],
     subsidiaries: [
       { name: 'Scoot', iata: 'TR' },
+    ],
+    overview: [
+      'Singapore Airlines is the flag carrier of Singapore, founded in 1972 when Malaysia–Singapore Airlines was split between the two countries. Operating from a single mega-hub at Singapore Changi Airport — repeatedly voted the world\'s best — the airline built a reputation as the benchmark for premium long-haul cabin product and service.',
+      'The fleet is all wide-body: Airbus A350-900 (including the ultra-long-range variant used for the world\'s longest commercial flight, SIN–JFK), Airbus A380, Boeing 777-300ER and Boeing 787-10. Singapore Airlines was the first operator of both the A380 and the 787-10, reflecting its long-running role as a launch customer for new wide-body types.',
+      'Service classes range from Economy through Premium Economy, Business and First, with the Suites cabin on the A380 representing the airline\'s top tier — a private double-bed enclosure that defines the segment. SQ is a founding member of Star Alliance (1997) and partners closely with United, Lufthansa and other carriers across the network.',
+      'KrisFlyer is the loyalty programme; the group also operates low-cost subsidiary Scoot, which serves point-to-point leisure routes within Asia and on selected medium-haul markets. The full group flies under one of the most coveted reputations in commercial aviation — consistently top of the Skytrax World Airline Awards.',
     ],
     review: { score: 9.2, count: 76000, source: 'Skytrax' },
     baggagePolicy: {
@@ -205,6 +224,7 @@ const SUPPLEMENTS: Record<string, AirlineSupplement> = {
     icao: 'THY',
     callsign: 'Turkair',
     website: 'turkishairlines.com',
+    phone: '+90 850 333 0 849',
     loyaltyProgramme: 'Miles&Smiles',
     cabinClasses: ['Economy', 'Business'],
     fleetSize: 440,
@@ -220,6 +240,7 @@ const SUPPLEMENTS: Record<string, AirlineSupplement> = {
     icao: 'ANZ',
     callsign: 'New Zealand',
     website: 'airnewzealand.com',
+    phone: '+64 9 357 3000',
     loyaltyProgramme: 'Airpoints',
     cabinClasses: ['Economy', 'Premium Economy', 'Business'],
     fleetSize: 105,
@@ -322,6 +343,7 @@ const SUPPLEMENTS: Record<string, AirlineSupplement> = {
     icao: 'AAL',
     callsign: 'American',
     website: 'aa.com',
+    phone: '+1 800 433 7300',
     loyaltyProgramme: 'AAdvantage',
     cabinClasses: ['Economy', 'Premium Economy', 'Business', 'First'],
     fleetSize: 970,
@@ -340,11 +362,18 @@ const SUPPLEMENTS: Record<string, AirlineSupplement> = {
     icao: 'BAW',
     callsign: 'Speedbird',
     website: 'britishairways.com',
+    phone: '+44 203 250 0145',
     loyaltyProgramme: 'British Airways Executive Club',
     cabinClasses: ['Economy', 'Premium Economy', 'Business', 'First'],
     fleetSize: 280,
     fleetTypes: ['Airbus A320 family', 'Airbus A350', 'Airbus A380', 'Boeing 777', 'Boeing 787'],
     partners: ['AA', 'IB', 'QF', 'CX', 'JL'],
+    overview: [
+      'British Airways is the flag carrier of the United Kingdom, formed in 1974 through the merger of BOAC (long-haul) and BEA (short-haul), with operations centred on London Heathrow Terminal 5 and a smaller presence at London Gatwick and London City. The "Speedbird" callsign carries on the long Imperial Airways heritage that pre-dates the modern entity by half a century.',
+      'BA\'s fleet spans the Airbus A320 family for European short-haul, the A350 and A380 plus Boeing 777 and 787 wide-bodies for long-haul. The carrier is a founding member of the oneworld alliance and a core partner in the transatlantic joint business with American Airlines, Iberia and Finnair — a key driver of capacity between London and major US cities.',
+      'Cabin classes span Euro Traveller and Club Europe on short-haul, and World Traveller (Economy), World Traveller Plus (Premium Economy), Club World (Business) and First on long-haul. The First cabin survives as one of the few remaining "true First" products on a Western airline, and the recently introduced Club Suites mark a generational upgrade to the Business product.',
+      'Frequent flyers earn Avios and tier points through the British Airways Executive Club, a programme deeply integrated with the oneworld alliance and with the Avios family of partner schemes (Iberia Plus, Qatar Privilege Club, etc.). BA is part of the International Airlines Group (IAG), which also owns Iberia, Aer Lingus, Vueling and LEVEL.',
+    ],
     review: { score: 7.5, count: 56000, source: 'Skytrax' },
     baggagePolicy: {
       cabin: '1 × 23kg cabin bag + 1 personal item (most fares)',
@@ -369,6 +398,7 @@ const SUPPLEMENTS: Record<string, AirlineSupplement> = {
     icao: 'QFA',
     callsign: 'Qantas',
     website: 'qantas.com',
+    phone: '+61 2 9691 3636',
     loyaltyProgramme: 'Qantas Frequent Flyer',
     cabinClasses: ['Economy', 'Premium Economy', 'Business', 'First'],
     fleetSize: 130,
@@ -377,6 +407,12 @@ const SUPPLEMENTS: Record<string, AirlineSupplement> = {
     subsidiaries: [
       { name: 'QantasLink' },
       { name: 'Jetstar', iata: 'JQ' },
+    ],
+    overview: [
+      'Qantas Airways is the flag carrier of Australia and one of the world\'s oldest continuously operating airlines, founded in 1920 in regional Queensland as Queensland and Northern Territory Aerial Services — the source of its iconic abbreviation. From those bush-flying origins the carrier grew into a global long-haul network anchored in Sydney and Melbourne, today serving the Pacific, Asia, the Middle East, North America and Europe.',
+      'The mainline operation flies a wide-body and narrow-body mix — Airbus A380 and A330 family on its premium international trunk routes, Boeing 787-9 Dreamliners on ultra-long-haul services from Perth to London and beyond, and Boeing 737s on dense domestic and short-haul international networks. Qantas Freight extends the brand into dedicated cargo with its own fleet.',
+      'Qantas is a founding member of the oneworld alliance (1999), partnering closely with British Airways, Cathay Pacific, American Airlines and Japan Airlines, alongside a long-standing bilateral deal with Emirates. Its Project Sunrise initiative targets nonstop services from east-coast Australia to London and New York using Airbus A350-1000s, reshaping how the airline connects the southern hemisphere to the rest of the world.',
+      'The group operates two airline brands under its corporate roof: full-service Qantas mainline and the low-cost subsidiary Jetstar, plus regional carrier QantasLink. Travellers earn and redeem points through the Qantas Frequent Flyer programme, which has become one of the largest loyalty schemes in the Asia-Pacific region.',
     ],
     review: { score: 8.4, count: 47200, source: 'Skytrax' },
     baggagePolicy: {
@@ -403,6 +439,7 @@ const SUPPLEMENTS: Record<string, AirlineSupplement> = {
     icao: 'JAL',
     callsign: 'Japan Air',
     website: 'jal.co.jp',
+    phone: '+81 3 5460 0511',
     loyaltyProgramme: 'JAL Mileage Bank',
     cabinClasses: ['Economy', 'Premium Economy', 'Business', 'First'],
     fleetSize: 165,
@@ -418,6 +455,7 @@ const SUPPLEMENTS: Record<string, AirlineSupplement> = {
     icao: 'CPA',
     callsign: 'Cathay',
     website: 'cathaypacific.com',
+    phone: '+852 2747 3333',
     loyaltyProgramme: 'Cathay (Asia Miles)',
     cabinClasses: ['Economy', 'Premium Economy', 'Business', 'First'],
     fleetSize: 180,
@@ -458,6 +496,7 @@ const SUPPLEMENTS: Record<string, AirlineSupplement> = {
     icao: 'QTR',
     callsign: 'Qatari',
     website: 'qatarairways.com',
+    phone: '+974 4023 0000',
     loyaltyProgramme: 'Privilege Club',
     cabinClasses: ['Economy', 'Business', 'First'],
     fleetSize: 230,
@@ -517,6 +556,7 @@ const SUPPLEMENTS: Record<string, AirlineSupplement> = {
     icao: 'DAL',
     callsign: 'Delta',
     website: 'delta.com',
+    phone: '+1 800 221 1212',
     loyaltyProgramme: 'SkyMiles',
     cabinClasses: ['Economy', 'Premium Economy', 'Business', 'First'],
     fleetSize: 980,
@@ -532,6 +572,7 @@ const SUPPLEMENTS: Record<string, AirlineSupplement> = {
     icao: 'AFR',
     callsign: 'Airfrans',
     website: 'airfrance.com',
+    phone: '+33 9 69 39 36 54',
     loyaltyProgramme: 'Flying Blue',
     cabinClasses: ['Economy', 'Premium Economy', 'Business', 'First'],
     fleetSize: 215,
@@ -547,6 +588,7 @@ const SUPPLEMENTS: Record<string, AirlineSupplement> = {
     icao: 'KLM',
     callsign: 'KLM',
     website: 'klm.com',
+    phone: '+31 20 474 7747',
     loyaltyProgramme: 'Flying Blue',
     cabinClasses: ['Economy', 'Premium Economy', 'Business'],
     fleetSize: 110,
@@ -632,11 +674,18 @@ const SUPPLEMENTS: Record<string, AirlineSupplement> = {
     icao: 'UAE',
     callsign: 'Emirates',
     website: 'emirates.com',
+    phone: '+971 600 555 555',
     loyaltyProgramme: 'Skywards',
     cabinClasses: ['Economy', 'Premium Economy', 'Business', 'First'],
     fleetSize: 250,
     fleetTypes: ['Airbus A380', 'Boeing 777-300ER', 'Boeing 777-200LR', 'Airbus A350'],
     partners: ['QF', 'JL', 'KE', 'AS'],
+    overview: [
+      'Emirates is the flag carrier of the United Arab Emirates, founded in October 1985 with start-up capital from the Dubai government. From two leased aircraft on routes to Karachi and Mumbai, the carrier grew into one of the largest long-haul airlines in the world, with Dubai International Airport (Terminal 3) as its single mega-hub.',
+      'The fleet is anchored around two wide-body workhorses: the Airbus A380 — Emirates operates the largest A380 fleet of any airline — and the Boeing 777 family, supplemented by an emerging Airbus A350 contingent. The all-wide-body strategy reflects the airline\'s long-haul-only focus and its premium-heavy three-class (Economy, Business, First) and four-class (with Premium Economy) configurations.',
+      'Emirates is not a member of any of the three global alliances. Instead it operates a deep bilateral partnership with Qantas covering Australia–Europe routings, plus codeshare agreements with Japan Airlines, Korean Air, Alaska Airlines and others to extend its network beyond Dubai. The Skywards programme is its in-house frequent-flyer scheme.',
+      'In-cabin product is a regular Skytrax category winner — onboard showers and a private bar in First Class on the A380, ice in-flight entertainment with thousands of channels, and chauffeur transfers for premium-cabin passengers. The carrier is also the principal sponsor of the Emirates Stadium, a recognisable global brand asset.',
+    ],
     review: { score: 8.6, count: 89000, source: 'Skytrax' },
     baggagePolicy: {
       cabin: '1 × 7kg carry-on (Economy) / 1 × 12kg (Business+)',
@@ -658,6 +707,7 @@ const SUPPLEMENTS: Record<string, AirlineSupplement> = {
     icao: 'ETD',
     callsign: 'Etihad',
     website: 'etihad.com',
+    phone: '+971 600 555 666',
     loyaltyProgramme: 'Etihad Guest',
     cabinClasses: ['Economy', 'Business', 'First'],
     fleetSize: 90,
