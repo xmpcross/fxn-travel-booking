@@ -107,7 +107,7 @@ export default async function AirlineDetailPage({
             <div className="flex flex-col gap-2 sm:flex-row">
               <Link
                 href={flightSearchHref}
-                className="inline-flex items-center justify-center rounded-lg bg-orange-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-orange-600"
+                className="inline-flex items-center justify-center rounded-lg bg-orange-500 px-5 py-2.5 text-sm font-semibold !text-[#ffffff] shadow-sm hover:bg-orange-600"
               >
                 Find {airline.name.split(' ')[0]} flights
               </Link>
@@ -262,7 +262,7 @@ export default async function AirlineDetailPage({
             </p>
             <Link
               href={flightSearchHref}
-              className="mt-4 inline-flex items-center justify-center rounded-lg bg-orange-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-orange-600"
+              className="mt-4 inline-flex items-center justify-center rounded-lg bg-orange-500 px-5 py-2.5 text-sm font-semibold !text-[#ffffff] shadow-sm hover:bg-orange-600"
             >
               Start a flight search
             </Link>
