@@ -98,29 +98,38 @@ function StaysPageContent() {
   }, [searchParams]);
 
   function handleSelect(result: StayResult) {
-    const cheapestRate = result.rates?.[0];
+    const srrId = result.search_result_id ?? result.id;
 
-    if (!cheapestRate?.id) {
+    if (!srrId) {
       setError(
-        "This stay is missing rate details from Duffel — please pick another or rerun the search."
+        "This stay is missing an identifier from Duffel — please pick another or rerun the search."
       );
       return;
     }
 
-    const payload = {
-      result,
-      rateId: cheapestRate.id,
-      search: {
-        destinationQuery: params.get("destinationQuery"),
-        checkInDate: params.get("checkInDate"),
-        checkOutDate: params.get("checkOutDate"),
-        rooms: params.get("rooms"),
-        guests: params.get("guests")
-      }
-    };
+    // Persist the search context so the detail page and downstream checkout
+    // can rebuild it without re-asking the user.
+    sessionStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        search: {
+          destinationQuery: params.get("destinationQuery"),
+          checkInDate: params.get("checkInDate"),
+          checkOutDate: params.get("checkOutDate"),
+          rooms: params.get("rooms"),
+          guests: params.get("guests"),
+        },
+      })
+    );
 
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
-    router.push("/checkout/stay");
+    const detailParams = new URLSearchParams();
+    const checkIn = params.get("checkInDate");
+    const checkOut = params.get("checkOutDate");
+    if (checkIn) detailParams.set("checkInDate", checkIn);
+    if (checkOut) detailParams.set("checkOutDate", checkOut);
+
+    const qs = detailParams.toString();
+    router.push(`/stays/${encodeURIComponent(srrId)}${qs ? `?${qs}` : ""}`);
   }
 
   return (
