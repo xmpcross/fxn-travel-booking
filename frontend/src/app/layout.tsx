@@ -1,27 +1,19 @@
 import '@/styles/tailwind.css'
 import '@/styles/duffel.css'
 import { Metadata } from 'next'
-import { Outfit, Urbanist } from 'next/font/google'
+import { Inter } from 'next/font/google'
 import 'rc-slider/assets/index.css'
 import 'react-datepicker/dist/react-datepicker.css'
 import ThemeProvider from './theme-provider'
 
-// next/font self-hosts: woff2 files are downloaded at build time and served from
-// /_next/static/media at runtime. No Google CDN call from the browser.
-const outfit = Outfit({
+// Inter is the single, site-wide typeface. next/font self-hosts: woff2
+// files are downloaded at build time and served from /_next/static/media
+// at runtime. No Google CDN call from the browser.
+const inter = Inter({
   subsets: ['latin'],
   display: 'swap',
   weight: ['300', '400', '500', '600', '700', '800'],
-  variable: '--font-outfit',
-})
-
-// Urbanist is the heading typeface — exposed as --font-urbanist so the CSS
-// rule below can pin h1–h6 to it regardless of where they're rendered.
-const urbanist = Urbanist({
-  subsets: ['latin'],
-  display: 'swap',
-  weight: ['700'],
-  variable: '--font-urbanist',
+  variable: '--font-inter',
 })
 
 export const metadata: Metadata = {
@@ -34,7 +26,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${outfit.variable} ${urbanist.variable} font-sans`}>
+    <html lang="en" className={`${inter.variable} font-sans`}>
       <body className="bg-white text-neutral-900 dark:bg-neutral-900 dark:text-neutral-100">
         <ThemeProvider>{children}</ThemeProvider>
       </body>

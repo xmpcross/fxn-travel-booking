@@ -6,7 +6,7 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --font-sans: var(--font-outfit), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 
   /* Global 4px corner radius for boxes, cards, images, popovers.
      `rounded-full` is unaffected (it uses 9999px, not these tokens), so
@@ -105,15 +105,6 @@
 
   input[type='time']::-webkit-calendar-picker-indicator {
     @apply rounded-md dark:bg-neutral-500;
-  }
-
-  /* All headings use Urbanist bold (700). Loaded via next/font in
-     src/app/layout.tsx; the variable is set on <html>. The !important
-     overrides per-element Tailwind font-* classes elsewhere in the
-     codebase so headings stay consistent. */
-  h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-urbanist), var(--font-sans), system-ui, sans-serif !important;
-    font-weight: 700 !important;
   }
 }
 
