@@ -13,6 +13,7 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useMemo, useState } from 'react'
 
+import { AdPlaceholder } from '@/components/AdPlaceholder'
 import { useCurrency } from '@/contexts/CurrencyContext'
 
 // --- types -----------------------------------------------------------------
@@ -338,7 +339,7 @@ function StaysContent() {
           ) : null}
         </nav>
 
-        <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
+        <div className="grid gap-6 lg:grid-cols-[280px_1fr_260px]">
           {/* Sidebar filters */}
           <aside className="space-y-5">
             <MapCard />
@@ -454,6 +455,9 @@ function StaysContent() {
               </div>
             )}
           </section>
+
+          {/* Right column: image / ad placeholder */}
+          <AdPlaceholder />
         </div>
       </div>
     </main>

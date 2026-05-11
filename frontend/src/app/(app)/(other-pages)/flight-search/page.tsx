@@ -7,6 +7,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useMemo, useState } from 'react'
 import clsx from 'clsx'
 
+import { AdPlaceholder } from '@/components/AdPlaceholder'
 import { FlightSearchForm } from '@/components/HeroSearchForm/FlightSearchForm'
 import { useCurrency } from '@/contexts/CurrencyContext'
 import { CHECKOUT_STORAGE_KEY } from '../checkout/flight/shared'
@@ -499,7 +500,7 @@ function FlightsContent() {
           </div>
         ) : null}
 
-        <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
+        <div className="grid gap-6 lg:grid-cols-[280px_1fr_260px]">
           {/* Sidebar */}
           <aside className="space-y-5">
             <SidebarSection title="Stops">
@@ -685,6 +686,9 @@ function FlightsContent() {
               </div>
             )}
           </section>
+
+          {/* Right column: image / ad placeholder */}
+          <AdPlaceholder />
         </div>
       </div>
     </main>
