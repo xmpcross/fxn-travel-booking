@@ -139,6 +139,15 @@
     line-height: 1.25 !important;
   }
 
+  /* The airline detail page opts OUT of the global h2 size pin so
+     each card heading can size itself with its own Tailwind text-*
+     class. Reverts h2 inside .airline-detail back to inheriting
+     from the per-element class. */
+  .airline-detail h2 {
+    font-size: revert !important;
+    line-height: revert !important;
+  }
+
   /* External http(s) links default to the brand primary colour. Wrapped
      in :where() to keep specificity at 0 — any explicit Tailwind
      text-* / !text-[…] / button class on the element still wins, so

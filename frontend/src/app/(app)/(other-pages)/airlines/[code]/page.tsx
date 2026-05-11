@@ -66,7 +66,7 @@ export default async function AirlineDetailPage({
   const flightSearchHref = `/flight-search?${findFlightsHref.toString()}`
 
   return (
-    <main className="bg-neutral-50 pb-16 dark:bg-neutral-950">
+    <main className="airline-detail bg-neutral-50 pb-16 dark:bg-neutral-950">
       <div className="container py-6">
         <nav className="mb-4 text-xs text-neutral-500">
           <Link href="/" className="hover:text-orange-600">
