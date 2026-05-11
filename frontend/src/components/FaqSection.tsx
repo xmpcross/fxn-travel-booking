@@ -30,7 +30,7 @@ export function FaqSection() {
   return (
     <section>
       <h2 className="text-2xl font-bold text-neutral-900 sm:text-3xl dark:text-neutral-100">
-        Frequently asked questions !
+        Frequently asked questions
       </h2>
 
       <div className="mt-6 grid grid-cols-1 gap-x-12 sm:grid-cols-2">
