@@ -34,8 +34,8 @@ type Accommodation = {
   rating?: number | null
   review_score?: number | null
   review_count?: number | null
-  brand?: string | null
-  chain?: string | null
+  brand?: { name?: string; id?: string } | string | null
+  chain?: { name?: string; id?: string } | string | null
   photos?: Photo[]
   amenities?: Amenity[]
   location?: {
@@ -787,6 +787,10 @@ function ResultCard({
   const currency = result.cheapest_rate_currency ?? ''
 
   const topAmenity = acc?.amenities?.[0]?.description
+  const brandName =
+    typeof acc?.brand === 'string'
+      ? acc.brand
+      : (acc?.brand?.name ?? null)
 
   return (
     <article className="group relative grid overflow-hidden rounded-[4px] border border-neutral-200 bg-white shadow-sm transition-shadow hover:shadow-md lg:grid-cols-[260px_1fr_220px] dark:border-neutral-800 dark:bg-neutral-900">
@@ -854,12 +858,12 @@ function ResultCard({
 
         {/* Middle */}
         <div className="flex flex-col gap-3 p-4 sm:p-5">
-          {acc?.brand ? (
+          {brandName ? (
             <span className="inline-flex w-fit items-center gap-1 text-xs font-semibold text-orange-600">
               <svg className="size-3.5" viewBox="0 0 20 20" fill="currentColor">
                 <path d="M10 1l2.5 5.5L18 7.5l-4 4 1 6L10 14.5 5 17.5l1-6-4-4 5.5-1L10 1z" />
               </svg>
-              {acc.brand} Preferred
+              {brandName} Preferred
             </span>
           ) : null}
           <h3 className="text-lg font-bold text-neutral-900 group-hover:text-orange-600 dark:text-neutral-100 dark:group-hover:text-orange-400">
