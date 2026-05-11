@@ -21,13 +21,20 @@ interface Props {
 
 const formatPlace = (p: Place): string => `${p.city_name || p.name} (${p.iata_code})`
 
+// Extract the IATA code from a "City (XXX)" display value. Falls back to the
+// uppercased raw value (so a bare "PER" still submits as PER).
+const extractIata = (raw: string): string => {
+  const m = raw.match(/\(([A-Za-z0-9]{3})\)\s*$/)
+  return m ? m[1].toUpperCase() : raw.toUpperCase()
+}
+
 export const SimpleAirportInput: FC<Props> = ({ inputName, label, placeholder = '', defaultValue = '' }) => {
   // What the user sees in the input. After selection this is "Sydney (SYD)";
   // while typing it's whatever they're typing.
   const [displayValue, setDisplayValue] = useState(defaultValue)
   // The IATA code that actually gets submitted. Mirrors the user's typing
   // (uppercased) when no selection has been made, or the selected place's code.
-  const [iataValue, setIataValue] = useState(defaultValue.toUpperCase())
+  const [iataValue, setIataValue] = useState(extractIata(defaultValue))
   const [places, setPlaces] = useState<Place[]>([])
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -99,7 +106,7 @@ export const SimpleAirportInput: FC<Props> = ({ inputName, label, placeholder = 
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const next = e.target.value
     setDisplayValue(next)
-    setIataValue(next.toUpperCase())
+    setIataValue(extractIata(next))
     setHasSelection(false)
     setOpen(true)
     fetchPlaces(next)

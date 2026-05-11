@@ -168,7 +168,14 @@ export const FlightSearchForm: FC<Props> = ({ className, openInNewTab = true, in
         const iata = top?.iata_code
         const placeName = top?.city_name ?? city
         if (iata && !cancelled) {
-          setOriginPlaceholder(`${placeName} (${iata})`)
+          const formatted = `${placeName} (${iata})`
+          setOriginPlaceholder(formatted)
+          // Also pre-fill the From field's defaultValue. SimpleAirportInput
+          // extracts the IATA from "City (XXX)" so submission still posts
+          // just the code.
+          setFromDefault(formatted)
+          // Remount via swapCount so the new defaultValue takes effect.
+          setSwapCount((n) => n + 1)
         }
       } catch {
         // Network/CORS issues — silently leave the default placeholder.
@@ -289,7 +296,7 @@ export const FlightSearchForm: FC<Props> = ({ className, openInNewTab = true, in
         {/* From + To live in a single grid cell that spans 2 columns so we
             can collapse the gap between them and float a Swap button at
             their boundary. */}
-        <div className="relative grid grid-cols-2 gap-px sm:col-span-2 lg:col-span-2">
+        <div className="relative grid grid-cols-2 gap-6 sm:col-span-2 lg:col-span-2">
           <SimpleAirportInput
             /* Re-mount once when geolocation resolves so the dynamic
                placeholder actually replaces the initial "Perth (PER)" hint,
