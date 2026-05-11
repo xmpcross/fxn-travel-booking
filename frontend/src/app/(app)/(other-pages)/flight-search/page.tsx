@@ -8,6 +8,7 @@ import { Suspense, useEffect, useMemo, useState } from 'react'
 import clsx from 'clsx'
 
 import { FlightSearchForm } from '@/components/HeroSearchForm/FlightSearchForm'
+import { useCurrency } from '@/contexts/CurrencyContext'
 import { CHECKOUT_STORAGE_KEY } from '../checkout/flight/shared'
 
 // --- types -----------------------------------------------------------------
@@ -172,6 +173,7 @@ function FlightsContent() {
   const searchParams = useSearchParams()
   const params = searchParams ?? new URLSearchParams()
   const router = useRouter()
+  const { format } = useCurrency()
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -523,7 +525,7 @@ function FlightsContent() {
                   className="w-full accent-orange-500"
                 />
                 <p className="mt-1 text-xs text-neutral-500">
-                  Up to {currency} {(maxPrice ?? highestPrice).toLocaleString()}
+                  Up to {format(maxPrice ?? highestPrice, currency)}
                 </p>
               </SidebarSection>
             ) : null}
@@ -815,6 +817,7 @@ function FlightResultCard({
   item: NormalizedOffer
   onSelect: () => void
 }) {
+  const { format } = useCurrency()
   const slices = item.offer.slices ?? []
   return (
     <article className="grid overflow-hidden rounded-[4px] border border-neutral-200 bg-white shadow-sm transition-shadow hover:shadow-md lg:grid-cols-[1fr_220px] dark:border-neutral-800 dark:bg-neutral-900">
@@ -827,7 +830,7 @@ function FlightResultCard({
         <div className="text-right">
           <span className="text-xs text-neutral-500">from</span>
           <div className="text-2xl font-bold text-rose-600 dark:text-rose-400">
-            {item.currency} {Math.round(item.amount).toLocaleString()}
+            {format(item.amount, item.currency)}
           </div>
           <p className="text-xs text-neutral-500">per person, incl. taxes &amp; fees</p>
         </div>

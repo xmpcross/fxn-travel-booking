@@ -13,6 +13,8 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useMemo, useState } from 'react'
 
+import { useCurrency } from '@/contexts/CurrencyContext'
+
 // --- types -----------------------------------------------------------------
 
 type Photo = { url?: string }
@@ -685,13 +687,14 @@ function PriceSlider({
 }
 
 function BudgetField({ label, value, currency }: { label: string; value: number; currency: string }) {
+  const { format } = useCurrency()
   return (
     <div className="rounded-lg border border-neutral-200 px-2.5 py-1.5 dark:border-neutral-700">
       <div className="text-[10px] font-semibold uppercase tracking-wide text-neutral-500">
         {label}
       </div>
       <div className="text-sm font-medium text-neutral-800 dark:text-neutral-100">
-        {currency} {Math.round(value).toLocaleString()}
+        {format(Math.round(value), currency)}
       </div>
     </div>
   )
@@ -761,6 +764,7 @@ function ResultCard({
   checkInDate: string | null
   checkOutDate: string | null
 }) {
+  const { format } = useCurrency()
   const acc = result.accommodation
   const photos = (acc?.photos ?? []).filter((p): p is { url: string } => Boolean(p?.url))
   const [photoIdx, setPhotoIdx] = useState(0)
@@ -920,12 +924,12 @@ function ResultCard({
           )}
           <div className="text-right">
             <div className="text-2xl font-bold text-rose-600 dark:text-rose-400">
-              {formatPrice(perNight, currency)}
+              {format(perNight, currency)}
             </div>
             <p className="text-xs text-neutral-500">per night incl. taxes &amp; fees</p>
             {nights > 1 ? (
               <p className="mt-0.5 text-xs text-neutral-400">
-                {formatPrice(totalAmount, currency)} total
+                {format(totalAmount, currency)} total
               </p>
             ) : null}
           </div>

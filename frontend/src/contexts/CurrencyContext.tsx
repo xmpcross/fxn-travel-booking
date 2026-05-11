@@ -24,8 +24,8 @@ const RATES_CACHE_KEY = 'nxt.deals.fx_rates'
 const RATES_TTL_MS = 24 * 60 * 60 * 1000 // 24h
 
 export const SUPPORTED_CURRENCIES: Array<{ code: string; name: string; symbol: string }> = [
-  { code: 'AUD', name: 'Australian Dollar', symbol: 'A$' },
   { code: 'USD', name: 'US Dollar', symbol: '$' },
+  { code: 'AUD', name: 'Australian Dollar', symbol: 'A$' },
   { code: 'GBP', name: 'Pound Sterling', symbol: '£' },
   { code: 'EUR', name: 'Euro', symbol: '€' },
   { code: 'NZD', name: 'New Zealand Dollar', symbol: 'NZ$' },
@@ -41,7 +41,7 @@ export const SUPPORTED_CURRENCIES: Array<{ code: string; name: string; symbol: s
 const CurrencyContext = createContext<CurrencyContextValue | null>(null)
 
 export function CurrencyProvider({ children }: { children: React.ReactNode }) {
-  const [currency, setCurrencyState] = useState<string>('AUD')
+  const [currency, setCurrencyState] = useState<string>('USD')
   const [rates, setRates] = useState<Rates>({})
   const [ready, setReady] = useState(false)
 
@@ -148,14 +148,14 @@ export function useCurrency(): CurrencyContextValue {
     // No provider — return a noop that still renders prices in the source
     // currency so individual pages don't crash if they're rendered standalone.
     return {
-      currency: 'AUD',
+      currency: 'USD',
       setCurrency: () => {},
       rates: {},
       ready: false,
       format: (amount, fromCurrency) => {
         const n = typeof amount === 'string' ? Number(amount) : amount
         if (n === null || n === undefined || !Number.isFinite(n)) return ''
-        return `${(fromCurrency || 'AUD').toUpperCase()} ${n.toFixed(2)}`
+        return `${(fromCurrency || 'USD').toUpperCase()} ${n.toFixed(2)}`
       },
     }
   }

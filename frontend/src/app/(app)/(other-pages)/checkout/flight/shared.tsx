@@ -544,26 +544,42 @@ export function FlightSummary({ selection }: { selection: StoredFlightSelection 
           {selection.offer.slices?.map((slice, sliceIndex) => {
             const firstSegment = slice.segments?.[0];
             const lastSegment = slice.segments?.[slice.segments.length - 1];
+            const marketingCarrier = firstSegment?.marketing_carrier;
+            const operatingCarrier = firstSegment?.operating_carrier;
+            const carrier = marketingCarrier ?? operatingCarrier;
             const airlineLabel =
-              firstSegment?.operating_carrier?.name ??
-              firstSegment?.marketing_carrier?.name ??
+              carrier?.name ??
               selection.offer?.owner?.name ??
               "Airline";
+            const airlineLogo =
+              carrier?.logo_symbol_url ??
+              selection.offer?.owner?.logo_symbol_url ??
+              null;
 
             return (
               <div className="checkout-slice" key={slice.id ?? `slice-${sliceIndex}`}>
                 <div className="checkout-slice-head">
-                  <div>
-                    <h3>
-                      {getPlaceLabel(slice.origin)} to {getPlaceLabel(slice.destination)}
-                    </h3>
-                    <p className="muted">
-                      {formatTime(firstSegment?.departing_at)} - {formatTime(lastSegment?.arriving_at)} (
-                      {formatDuration(parseDurationToMinutes(slice.duration ?? undefined))}, {formatSliceStops(slice.segments?.length ?? 0)})
-                    </p>
-                    <p className="muted">
-                      {airlineLabel} | {formatDate(firstSegment?.departing_at)}
-                    </p>
+                  <div className="checkout-slice-head-row">
+                    {airlineLogo ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={airlineLogo}
+                        alt=""
+                        className="checkout-airline-logo"
+                      />
+                    ) : null}
+                    <div>
+                      <h3>
+                        {getPlaceLabel(slice.origin)} to {getPlaceLabel(slice.destination)}
+                      </h3>
+                      <p className="muted">
+                        {formatTime(firstSegment?.departing_at)} - {formatTime(lastSegment?.arriving_at)} (
+                        {formatDuration(parseDurationToMinutes(slice.duration ?? undefined))}, {formatSliceStops(slice.segments?.length ?? 0)})
+                      </p>
+                      <p className="muted">
+                        {airlineLabel} | {formatDate(firstSegment?.departing_at)}
+                      </p>
+                    </div>
                   </div>
                 </div>
 

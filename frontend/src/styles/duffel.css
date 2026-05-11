@@ -931,6 +931,23 @@ a {
   font-size: 1rem;
 }
 
+.checkout-slice-head-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.checkout-airline-logo {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 6px;
+  object-fit: contain;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+
 .checkout-flight-summary p,
 .checkout-slice p {
   font-size: 14px;
