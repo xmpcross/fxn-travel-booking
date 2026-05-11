@@ -20,16 +20,45 @@
   --radius-3xl: 0.25rem;
   --radius-4xl: 0.25rem;
 
-  --color-primary-50: rgb(238, 242, 255);
-  --color-primary-100: rgb(224, 231, 255);
-  --color-primary-200: rgb(199, 210, 254);
-  --color-primary-300: rgb(165, 180, 252);
-  --color-primary-400: rgb(129, 140, 248);
-  --color-primary-500: rgb(99, 102, 241);
-  --color-primary-600: rgb(79, 70, 229);
-  --color-primary-700: rgb(67, 56, 202);
-  --color-primary-800: rgb(55, 48, 163);
-  --color-primary-900: rgb(49, 46, 129);
+  /* Brand colour scheme — Booking-style blue tokens.
+     Available as design tokens both directly (use var(--colorBgPrimary…))
+     and through the Tailwind orange-500/600 palette, which we re-bind so
+     every existing accent (Search button, link, badge, etc.) automatically
+     picks up the brand blue without per-file edits. */
+  --colorBgPrimaryEmphasis: #014fd3;
+  --colorBgPrimaryEmphasisHover: #0072de;
+  --colorBgPrimaryEmphasisPressed: #0046be;
+  --colorBgPrimaryHighlight: #0072de;
+  --colorBgPrimaryHighlightHover: #025ccc;
+  --colorBgPrimaryHighlightPressed: #014fd3;
+
+  /* Re-bind Tailwind's orange palette to the brand blues. The codebase
+     already uses bg-orange-500 / text-orange-600 etc. as the universal
+     accent — overriding the tokens here flips the whole site without a
+     find-and-replace. The full 50–950 ladder is filled in so light tints
+     (orange-50 backgrounds, etc.) also shift to blue. */
+  --color-orange-50: #e6f0ff;
+  --color-orange-100: #cce0ff;
+  --color-orange-200: #99c0ff;
+  --color-orange-300: #66a1ff;
+  --color-orange-400: #3382ff;
+  --color-orange-500: #014fd3;
+  --color-orange-600: #0046be;
+  --color-orange-700: #0072de;
+  --color-orange-800: #014fd3;
+  --color-orange-900: #0046be;
+  --color-orange-950: #002766;
+
+  --color-primary-50: #e6f0ff;
+  --color-primary-100: #cce0ff;
+  --color-primary-200: #99c0ff;
+  --color-primary-300: #66a1ff;
+  --color-primary-400: #3382ff;
+  --color-primary-500: #014fd3;
+  --color-primary-600: #0046be;
+  --color-primary-700: #0072de;
+  --color-primary-800: #014fd3;
+  --color-primary-900: #0046be;
 
   --color-secondary-50: rgb(240, 253, 250);
   --color-secondary-100: rgb(204, 251, 241);
