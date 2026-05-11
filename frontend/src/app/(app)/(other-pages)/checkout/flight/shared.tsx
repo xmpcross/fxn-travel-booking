@@ -544,42 +544,26 @@ export function FlightSummary({ selection }: { selection: StoredFlightSelection 
           {selection.offer.slices?.map((slice, sliceIndex) => {
             const firstSegment = slice.segments?.[0];
             const lastSegment = slice.segments?.[slice.segments.length - 1];
-            const marketingCarrier = firstSegment?.marketing_carrier;
-            const operatingCarrier = firstSegment?.operating_carrier;
-            const carrier = marketingCarrier ?? operatingCarrier;
             const airlineLabel =
-              carrier?.name ??
+              firstSegment?.marketing_carrier?.name ??
+              firstSegment?.operating_carrier?.name ??
               selection.offer?.owner?.name ??
               "Airline";
-            const airlineLogo =
-              carrier?.logo_symbol_url ??
-              selection.offer?.owner?.logo_symbol_url ??
-              null;
 
             return (
               <div className="checkout-slice" key={slice.id ?? `slice-${sliceIndex}`}>
                 <div className="checkout-slice-head">
-                  <div className="checkout-slice-head-row">
-                    {airlineLogo ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={airlineLogo}
-                        alt=""
-                        className="checkout-airline-logo"
-                      />
-                    ) : null}
-                    <div>
-                      <h3>
-                        {getPlaceLabel(slice.origin)} to {getPlaceLabel(slice.destination)}
-                      </h3>
-                      <p className="muted">
-                        {formatTime(firstSegment?.departing_at)} - {formatTime(lastSegment?.arriving_at)} (
-                        {formatDuration(parseDurationToMinutes(slice.duration ?? undefined))}, {formatSliceStops(slice.segments?.length ?? 0)})
-                      </p>
-                      <p className="muted">
-                        {airlineLabel} | {formatDate(firstSegment?.departing_at)}
-                      </p>
-                    </div>
+                  <div>
+                    <h3>
+                      {getPlaceLabel(slice.origin)} to {getPlaceLabel(slice.destination)}
+                    </h3>
+                    <p className="muted">
+                      {formatTime(firstSegment?.departing_at)} - {formatTime(lastSegment?.arriving_at)} (
+                      {formatDuration(parseDurationToMinutes(slice.duration ?? undefined))}, {formatSliceStops(slice.segments?.length ?? 0)})
+                    </p>
+                    <p className="muted">
+                      {airlineLabel} | {formatDate(firstSegment?.departing_at)}
+                    </p>
                   </div>
                 </div>
 
@@ -590,6 +574,13 @@ export function FlightSummary({ selection }: { selection: StoredFlightSelection 
                         .replace(/^(Boeing|Airbus|Embraer|Bombardier|McDonnell Douglas|ATR|De Havilland|Saab|Fokker)\s+/i, "")
                         .split(/[\s,/|]+/)[0]
                     : null;
+                  const segCarrier = segment.marketing_carrier ?? segment.operating_carrier;
+                  const segCarrierName =
+                    segCarrier?.name ?? selection.offer?.owner?.name ?? "Airline";
+                  const segCarrierLogo =
+                    segCarrier?.logo_symbol_url ??
+                    selection.offer?.owner?.logo_symbol_url ??
+                    null;
                   return (
                   <div className="checkout-segment" key={segment.id}>
                     <div className="checkout-segment-time">
@@ -599,8 +590,18 @@ export function FlightSummary({ selection }: { selection: StoredFlightSelection 
                     <div className="checkout-segment-line">
                       <span className="checkout-dot" />
                       <span className="checkout-airline-pill">
-                        {segment.operating_carrier?.name ?? selection.offer?.owner?.name ?? "Airline"}
-                        {aircraft ? ` · ${aircraft}` : ""}
+                        {segCarrierLogo ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={segCarrierLogo}
+                            alt=""
+                            className="checkout-airline-pill-logo"
+                          />
+                        ) : null}
+                        <span>
+                          {segCarrierName}
+                          {aircraft ? ` · ${aircraft}` : ""}
+                        </span>
                       </span>
                       <span className="checkout-dot" />
                     </div>
