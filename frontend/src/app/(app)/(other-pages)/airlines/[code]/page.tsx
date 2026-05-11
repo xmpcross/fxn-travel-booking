@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
+import { getAirlineSupplement } from '@/data/airlineSupplement'
 import { findAirlineByCode } from '@/lib/duffel'
 
 export const revalidate = 86_400
@@ -36,6 +37,7 @@ export default async function AirlineDetailPage({
   const symbol = airline.logo_symbol_url
   const cocUrl = airline.conditions_of_carriage_url
   const iata = airline.iata_code
+  const supplement = getAirlineSupplement(iata)
 
   // Pre-fill a flight search where the user just needs to pick origin /
   // destination — the airline name is pinned via the URL.
@@ -113,28 +115,90 @@ export default async function AirlineDetailPage({
           </div>
         </section>
 
-        {/* About — Duffel-derived only */}
+        {/* About + supplement */}
         <section className="mt-6 grid gap-4 lg:grid-cols-2">
           <div className="rounded-2xl border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
             <h2 className="text-base font-bold text-neutral-900 dark:text-neutral-100">
               About this airline
             </h2>
-            <p className="mt-3 text-sm text-neutral-600 dark:text-neutral-400">
-              {airline.name} is one of {/* count is fine-grained but stable enough not to refetch */}{' '}
-              hundreds of airlines we surface fares from via the Duffel travel platform. Detailed
-              fleet, hub, and on-time data isn&apos;t published by our airline partners through the
-              same feed — for those you can use the airline&apos;s own site.
-            </p>
-            {cocUrl ? (
+            {supplement ? (
+              <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+                {supplement.alliance ? (
+                  <>
+                    <dt className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                      Alliance
+                    </dt>
+                    <dd className="font-medium text-neutral-900 dark:text-neutral-100">
+                      {supplement.alliance}
+                    </dd>
+                  </>
+                ) : null}
+                {supplement.founded ? (
+                  <>
+                    <dt className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                      Founded
+                    </dt>
+                    <dd className="font-medium text-neutral-900 dark:text-neutral-100">
+                      {supplement.founded}
+                    </dd>
+                  </>
+                ) : null}
+                {supplement.country ? (
+                  <>
+                    <dt className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                      Country
+                    </dt>
+                    <dd className="font-medium text-neutral-900 dark:text-neutral-100">
+                      {supplement.country}
+                    </dd>
+                  </>
+                ) : null}
+                {supplement.headquarters ? (
+                  <>
+                    <dt className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                      Headquarters
+                    </dt>
+                    <dd className="font-medium text-neutral-900 dark:text-neutral-100">
+                      {supplement.headquarters}
+                    </dd>
+                  </>
+                ) : null}
+                {supplement.hubs && supplement.hubs.length > 0 ? (
+                  <>
+                    <dt className="col-span-2 mt-2 text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                      Primary hubs
+                    </dt>
+                    <dd className="col-span-2 flex flex-wrap gap-2">
+                      {supplement.hubs.map((h) => (
+                        <span
+                          key={h.iata}
+                          className="inline-flex items-center gap-1.5 rounded-md bg-neutral-100 px-2.5 py-1 text-xs font-medium text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300"
+                        >
+                          {h.name}{' '}
+                          <span className="font-mono text-[10px] text-neutral-500">{h.iata}</span>
+                        </span>
+                      ))}
+                    </dd>
+                  </>
+                ) : null}
+              </dl>
+            ) : (
               <p className="mt-3 text-sm text-neutral-600 dark:text-neutral-400">
-                Booking with {airline.name} is governed by the carrier&apos;s own conditions of
-                carriage, linked above. Please read these before purchasing — they cover refunds,
-                changes, baggage allowance, and dispute resolution.
+                {airline.name} is one of hundreds of airlines we surface fares from via the Duffel
+                travel platform. Detailed fleet, hub, and on-time data isn&apos;t published through
+                this feed.
+              </p>
+            )}
+            {cocUrl ? (
+              <p className="mt-4 text-sm text-neutral-600 dark:text-neutral-400">
+                Booking is governed by {airline.name}&apos;s conditions of carriage, linked above.
+                Read these before purchasing — they cover refunds, changes, baggage allowance, and
+                dispute resolution.
               </p>
             ) : (
-              <p className="mt-3 text-sm text-neutral-500">
+              <p className="mt-4 text-sm text-neutral-500">
                 Conditions of carriage for this airline are not listed in our directory yet. Check
-                the airline&apos;s own website before booking.
+                the carrier&apos;s own website before booking.
               </p>
             )}
           </div>

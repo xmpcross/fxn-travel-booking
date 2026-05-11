@@ -11,7 +11,6 @@ const PAGE_SIZE = 60
 export function AirlinesDirectory({ airlines }: { airlines: Airline[] }) {
   const [query, setQuery] = useState('')
   const [letter, setLetter] = useState<string | null>(null)
-  const [logosOnly, setLogosOnly] = useState(true)
   const [visible, setVisible] = useState(PAGE_SIZE)
 
   // Sort once, alphabetical by name. Duffel returns by id which is meaningless.
@@ -23,7 +22,6 @@ export function AirlinesDirectory({ airlines }: { airlines: Airline[] }) {
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
     return sorted.filter((a) => {
-      if (logosOnly && !a.logo_lockup_url && !a.logo_symbol_url) return false
       if (letter) {
         const first = (a.name[0] ?? '').toUpperCase()
         if (first !== letter) return false
@@ -34,37 +32,36 @@ export function AirlinesDirectory({ airlines }: { airlines: Airline[] }) {
         (a.iata_code ?? '').toLowerCase().includes(q)
       )
     })
-  }, [sorted, query, letter, logosOnly])
+  }, [sorted, query, letter])
 
   const letters = useMemo(() => {
     const set = new Set<string>()
     for (const a of sorted) {
-      if (logosOnly && !a.logo_lockup_url && !a.logo_symbol_url) continue
       const first = (a.name[0] ?? '').toUpperCase()
       if (first.match(/[A-Z]/)) set.add(first)
     }
     return Array.from(set).sort()
-  }, [sorted, logosOnly])
+  }, [sorted])
 
   const shown = filtered.slice(0, visible)
 
   return (
     <main className="bg-neutral-50 pb-16 dark:bg-neutral-950">
       <div className="container py-6">
-        <header className="mx-auto max-w-3xl text-center">
+        <header className="text-center">
           <p className="text-sm font-semibold uppercase tracking-wide text-orange-600">Airlines</p>
           <h1 className="mt-3 text-[2rem] font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
-            Airline directory
+            Top airlines
           </h1>
-          <p className="mt-3 text-sm text-neutral-600 dark:text-neutral-400">
-            Browse the {sorted.length.toLocaleString()} airlines available through our flight
-            search. Tap an airline to view its conditions of carriage and find flights operated by
-            it.
+          <p className="mx-auto mt-3 max-w-3xl text-sm text-neutral-600 dark:text-neutral-400">
+            The {sorted.length} major commercial carriers available through our flight search. Tap
+            an airline to view its alliance, hubs, conditions of carriage, and find flights
+            operated by it.
           </p>
         </header>
 
         {/* Toolbar */}
-        <div className="mx-auto mt-8 flex max-w-3xl flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
           <div className="relative flex-1">
             <MagnifyingGlassIcon className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-neutral-400" />
             <input
@@ -78,22 +75,10 @@ export function AirlinesDirectory({ airlines }: { airlines: Airline[] }) {
               className="w-full rounded-full border border-neutral-200 bg-white py-2.5 pl-9 pr-3 text-sm placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-orange-500 dark:border-neutral-700 dark:bg-neutral-900"
             />
           </div>
-          <label className="flex cursor-pointer items-center gap-2 text-sm text-neutral-700 dark:text-neutral-300">
-            <input
-              type="checkbox"
-              checked={logosOnly}
-              onChange={(e) => {
-                setLogosOnly(e.target.checked)
-                setVisible(PAGE_SIZE)
-              }}
-              className="size-4 rounded border-neutral-300 text-orange-500 focus:ring-orange-500 dark:border-neutral-600 dark:bg-neutral-800"
-            />
-            <span>Only airlines with logos</span>
-          </label>
         </div>
 
         {/* A–Z filter */}
-        <div className="mx-auto mt-4 flex max-w-4xl flex-wrap justify-center gap-1">
+        <div className="mt-4 flex flex-wrap justify-center gap-1">
           <button
             type="button"
             onClick={() => {
@@ -132,8 +117,8 @@ export function AirlinesDirectory({ airlines }: { airlines: Airline[] }) {
           {filtered.length.toLocaleString()}
         </p>
 
-        {/* Grid */}
-        <div className="mx-auto mt-4 grid max-w-6xl grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {/* Grid — 4 per row on lg+, 2 on sm, 1 on mobile */}
+        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {shown.map((a) => {
             const slug = a.iata_code ?? a.id
             const logo = a.logo_lockup_url ?? a.logo_symbol_url
@@ -174,7 +159,7 @@ export function AirlinesDirectory({ airlines }: { airlines: Airline[] }) {
         </div>
 
         {filtered.length === 0 ? (
-          <div className="mx-auto mt-8 max-w-md rounded-2xl border border-neutral-200 bg-white p-6 text-center text-sm text-neutral-500 dark:border-neutral-800 dark:bg-neutral-900">
+          <div className="mt-8 rounded-2xl border border-neutral-200 bg-white p-6 text-center text-sm text-neutral-500 dark:border-neutral-800 dark:bg-neutral-900">
             No airlines match. Try clearing the search or letter filter.
           </div>
         ) : null}
