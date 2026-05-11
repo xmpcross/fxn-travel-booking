@@ -814,7 +814,7 @@ function ResultCard({
       {/* Photo. pointer-events-none lets clicks on the photo area pass through
           to the stretched link; the interactive buttons re-enable pointer
           events on themselves. */}
-      <div className="pointer-events-none relative z-10 aspect-[4/3] lg:aspect-auto">
+      <div className="pointer-events-none relative z-10 aspect-[4/3] lg:aspect-auto lg:max-h-[550px]">
         {photos[photoIdx] ? (
           <img
             src={photos[photoIdx].url}
@@ -874,7 +874,7 @@ function ResultCard({
               {brandName} Preferred
             </span>
           ) : null}
-          <h3 className="text-lg font-bold text-neutral-900 group-hover:text-orange-600 dark:text-neutral-100 dark:group-hover:text-orange-400">
+          <h3 className="text-sm font-semibold text-neutral-900 group-hover:text-orange-600 dark:text-neutral-100 dark:group-hover:text-orange-400">
             {acc?.name ?? 'Accommodation'}
           </h3>
           {stars > 0 ? (
@@ -927,7 +927,7 @@ function ResultCard({
             <div />
           )}
           <div className="text-right">
-            <div className="text-2xl font-bold text-rose-600 dark:text-rose-400">
+            <div className="text-base font-semibold text-rose-600 dark:text-rose-400">
               {format(perNight, currency)}
             </div>
             <p className="text-xs text-neutral-500">per night incl. taxes &amp; fees</p>
@@ -945,7 +945,7 @@ function ResultCard({
 function SkeletonCard() {
   return (
     <div className="grid animate-pulse overflow-hidden rounded-[4px] border border-neutral-200 bg-white shadow-sm lg:grid-cols-[260px_1fr_220px] dark:border-neutral-800 dark:bg-neutral-900">
-      <div className="aspect-[4/3] bg-neutral-200 lg:aspect-auto dark:bg-neutral-800" />
+      <div className="aspect-[4/3] bg-neutral-200 lg:aspect-auto lg:max-h-[550px] dark:bg-neutral-800" />
       <div className="space-y-3 p-5">
         <div className="h-4 w-1/2 rounded bg-neutral-200 dark:bg-neutral-800" />
         <div className="h-3 w-1/3 rounded bg-neutral-200 dark:bg-neutral-800" />
