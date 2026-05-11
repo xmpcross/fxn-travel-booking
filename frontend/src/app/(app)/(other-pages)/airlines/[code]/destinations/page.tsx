@@ -80,7 +80,7 @@ export default async function AirlineDestinationsPage({
 
         <header className="flex flex-wrap items-center gap-4">
           {airline.logo_lockup_url || airline.logo_symbol_url ? (
-            <div className="flex size-16 shrink-0 items-center justify-center rounded-xl bg-white p-2 ring-1 ring-neutral-200 dark:bg-neutral-900 dark:ring-neutral-800">
+            <div className="flex size-24 shrink-0 items-center justify-center rounded-xl bg-white p-3 ring-1 ring-neutral-200 dark:bg-neutral-900 dark:ring-neutral-800">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={airline.logo_lockup_url ?? airline.logo_symbol_url ?? ''}
