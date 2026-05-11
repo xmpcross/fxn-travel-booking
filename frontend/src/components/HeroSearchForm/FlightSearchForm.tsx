@@ -36,13 +36,6 @@ interface Props {
   onSwitchToStays?: () => void
 }
 
-const CABIN_LABEL: Record<CabinClass, string> = {
-  economy: 'Economy',
-  premium_economy: 'Premium economy',
-  business: 'Business',
-  first: 'First',
-}
-
 const inputClass =
   'w-full rounded-lg border border-neutral-300 bg-white px-3 py-2.5 text-sm focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500 dark:border-neutral-600 dark:bg-neutral-800 dark:text-neutral-100'
 
@@ -125,8 +118,10 @@ export const FlightSearchForm: FC<Props> = ({ className, openInNewTab = true, in
     // Run once on mount; deps intentionally omitted.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-  // Initial value for the From field: prefer URL param, then async-resolved geo IATA.
-  const [originDefault, setOriginDefault] = useState<string | undefined>(initial?.origin)
+  // Placeholder shown in the From field when it's empty — defaults to "Perth
+  // (PER)" and is replaced once geolocation resolves to the visitor's nearest
+  // city + IATA (e.g. "Bangkok (BKK)").
+  const [originPlaceholder, setOriginPlaceholder] = useState<string>('Perth (PER)')
 
   // Detect visitor's nearest IATA from IP-based geolocation, when the form
   // is rendered without an explicit origin (i.e. on the home page).
@@ -143,11 +138,17 @@ export const FlightSearchForm: FC<Props> = ({ className, openInNewTab = true, in
 
         const placesRes = await fetch(`/api/places/suggestions?q=${encodeURIComponent(city)}`)
         if (!placesRes.ok) return
-        const placesData = (await placesRes.json()) as { data?: Array<{ iata_code: string }> }
-        const iata = placesData.data?.[0]?.iata_code
-        if (iata && !cancelled) setOriginDefault(iata)
+        const placesData = (await placesRes.json()) as {
+          data?: Array<{ iata_code: string; city_name?: string; name?: string }>
+        }
+        const top = placesData.data?.[0]
+        const iata = top?.iata_code
+        const placeName = top?.city_name ?? city
+        if (iata && !cancelled) {
+          setOriginPlaceholder(`${placeName} (${iata})`)
+        }
       } catch {
-        // Network/CORS issues — silently leave the field empty.
+        // Network/CORS issues — silently leave the default placeholder.
       }
     })()
     return () => {
@@ -250,17 +251,6 @@ export const FlightSearchForm: FC<Props> = ({ className, openInNewTab = true, in
             </button>
           </div>
 
-          <div className="text-sm text-neutral-600 dark:text-neutral-400">
-            <span>
-              {adults} adult{adults > 1 ? 's' : ''}
-              {children > 0 ? `, ${children} child${children > 1 ? 'ren' : ''}` : ''}
-              {infants > 0 ? `, ${infants} infant${infants > 1 ? 's' : ''}` : ''}
-            </span>
-            <span className="mx-2 text-neutral-300 dark:text-neutral-600">|</span>
-            <span>{CABIN_LABEL[cabin].toLowerCase()}</span>
-            <span className="mx-2 text-neutral-300 dark:text-neutral-600">|</span>
-            <span>AUD</span>
-          </div>
         </div>
       </div>
 
@@ -272,17 +262,18 @@ export const FlightSearchForm: FC<Props> = ({ className, openInNewTab = true, in
         )}
       >
         <SimpleAirportInput
-          /* Re-mount once when geolocation resolves so defaultValue is honoured. */
-          key={`from-${originDefault ?? 'pending'}`}
+          /* Re-mount once when geolocation resolves so the dynamic placeholder
+             actually replaces the initial "Perth (PER)" hint. */
+          key={`from-${originPlaceholder}`}
           inputName="flying-from-location"
           label="From"
-          placeholder="PER"
-          defaultValue={originDefault}
+          placeholder={originPlaceholder}
+          defaultValue={initial?.origin}
         />
         <SimpleAirportInput
           inputName="flying-to-location"
           label="To"
-          placeholder="SIN"
+          placeholder="Singapore (SIN)"
           defaultValue={initial?.destination}
         />
 
