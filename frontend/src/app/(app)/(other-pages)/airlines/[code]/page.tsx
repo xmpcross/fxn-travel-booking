@@ -360,7 +360,7 @@ export default async function AirlineDetailPage({
                     <div className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
                       Codeshare partners
                     </div>
-                    <div className="mt-2 flex flex-wrap gap-3">
+                    <div className="mt-2 grid grid-cols-2 gap-3">
                       {supplement.partners.map((p) => {
                         const partner = byIata.get(p.toUpperCase())
                         const logo =
@@ -371,14 +371,14 @@ export default async function AirlineDetailPage({
                             key={p}
                             href={`/airlines/${encodeURIComponent(p)}`}
                             title={name}
-                            className="group flex h-12 items-center gap-2 rounded-md border border-neutral-200 bg-white px-2 py-1.5 hover:border-orange-400 dark:border-neutral-700 dark:bg-neutral-900"
+                            className="group flex h-14 items-center justify-center gap-2 rounded-md border border-neutral-200 bg-white px-3 py-2 hover:border-orange-400 dark:border-neutral-700 dark:bg-neutral-900"
                           >
                             {logo ? (
                               // eslint-disable-next-line @next/next/no-img-element
                               <img
                                 src={logo}
                                 alt={name}
-                                className="max-h-7 max-w-20 object-contain"
+                                className="max-h-10 max-w-32 object-contain"
                                 loading="lazy"
                               />
                             ) : (
@@ -397,7 +397,7 @@ export default async function AirlineDetailPage({
                     <div className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
                       Subsidiaries
                     </div>
-                    <div className="mt-2 flex flex-wrap gap-3">
+                    <div className="mt-2 grid grid-cols-2 gap-3">
                       {supplement.subsidiaries.map((s) => {
                         const sub = s.iata ? byIata.get(s.iata.toUpperCase()) : null
                         const logo =
@@ -408,14 +408,14 @@ export default async function AirlineDetailPage({
                               key={`${s.name}-${s.iata}`}
                               href={`/airlines/${encodeURIComponent(s.iata)}`}
                               title={s.name}
-                              className="group flex h-12 items-center gap-2 rounded-md border border-neutral-200 bg-white px-2 py-1.5 hover:border-orange-400 dark:border-neutral-700 dark:bg-neutral-900"
+                              className="group flex h-14 items-center justify-center gap-2 rounded-md border border-neutral-200 bg-white px-3 py-2 hover:border-orange-400 dark:border-neutral-700 dark:bg-neutral-900"
                             >
                               {logo ? (
                                 // eslint-disable-next-line @next/next/no-img-element
                                 <img
                                   src={logo}
                                   alt={s.name}
-                                  className="max-h-7 max-w-20 object-contain"
+                                  className="max-h-10 max-w-32 object-contain"
                                   loading="lazy"
                                 />
                               ) : (
