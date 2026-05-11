@@ -10,7 +10,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { HeartIcon as HeartSolid, StarIcon as StarSolid } from '@heroicons/react/24/solid'
 import Link from 'next/link'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useMemo, useState } from 'react'
 
 // --- types -----------------------------------------------------------------
@@ -788,76 +788,69 @@ function ResultCard({
 
   const topAmenity = acc?.amenities?.[0]?.description
 
-  const stop = (e: React.MouseEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-  }
-
   return (
-    <Link
-      href={detailHref}
-      className="group block overflow-hidden rounded-[4px] border border-neutral-200 bg-white shadow-sm transition-shadow hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 dark:border-neutral-800 dark:bg-neutral-900"
-    >
-      <article className="grid lg:grid-cols-[260px_1fr_220px]">
-        {/* Photo */}
-        <div className="relative aspect-[4/3] lg:aspect-auto">
-          {photos[photoIdx] ? (
-            <img
-              src={photos[photoIdx].url}
-              alt={acc?.name ?? 'Hotel photo'}
-              className="size-full object-cover"
-              loading="lazy"
-            />
+    <article className="group relative grid overflow-hidden rounded-[4px] border border-neutral-200 bg-white shadow-sm transition-shadow hover:shadow-md lg:grid-cols-[260px_1fr_220px] dark:border-neutral-800 dark:bg-neutral-900">
+      {/* Stretched link: covers the whole card so any click outside an
+          interactive button navigates to the detail page. Keeps the
+          DOM valid (no buttons nested inside an <a>). */}
+      <Link
+        href={detailHref}
+        aria-label={`View ${acc?.name ?? 'stay'} details`}
+        className="absolute inset-0 z-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500"
+      />
+
+      {/* Photo. pointer-events-none lets clicks on the photo area pass through
+          to the stretched link; the interactive buttons re-enable pointer
+          events on themselves. */}
+      <div className="pointer-events-none relative z-10 aspect-[4/3] lg:aspect-auto">
+        {photos[photoIdx] ? (
+          <img
+            src={photos[photoIdx].url}
+            alt={acc?.name ?? 'Hotel photo'}
+            className="pointer-events-none size-full object-cover"
+            loading="lazy"
+          />
+        ) : (
+          <div className="pointer-events-none flex size-full items-center justify-center bg-neutral-100 text-xs text-neutral-400 dark:bg-neutral-800">
+            No photo
+          </div>
+        )}
+        <button
+          type="button"
+          onClick={onFavorite}
+          aria-label="Save"
+          className="pointer-events-auto absolute right-3 top-3 z-20 inline-flex size-8 items-center justify-center rounded-full bg-white/95 text-rose-500 shadow hover:bg-white"
+        >
+          {favorited ? (
+            <HeartSolid className="size-5" />
           ) : (
-            <div className="flex size-full items-center justify-center bg-neutral-100 text-xs text-neutral-400 dark:bg-neutral-800">
-              No photo
-            </div>
+            <HeartIcon className="size-5 text-neutral-700" />
           )}
-          <button
-            type="button"
-            onClick={(e) => {
-              stop(e)
-              onFavorite()
-            }}
-            aria-label="Save"
-            className="absolute right-3 top-3 inline-flex size-8 items-center justify-center rounded-full bg-white/95 text-rose-500 shadow hover:bg-white"
-          >
-            {favorited ? (
-              <HeartSolid className="size-4.5" />
-            ) : (
-              <HeartIcon className="size-4.5 text-neutral-700" />
-            )}
-          </button>
-          {total > 1 ? (
-            <>
-              <button
-                type="button"
-                onClick={(e) => {
-                  stop(e)
-                  setPhotoIdx((i) => (i - 1 + total) % total)
-                }}
-                aria-label="Previous photo"
-                className="absolute left-3 top-1/2 inline-flex size-8 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-neutral-700 shadow hover:bg-white"
-              >
-                <ChevronLeftIcon className="size-4" />
-              </button>
-              <button
-                type="button"
-                onClick={(e) => {
-                  stop(e)
-                  setPhotoIdx((i) => (i + 1) % total)
-                }}
-                aria-label="Next photo"
-                className="absolute right-3 top-1/2 inline-flex size-8 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-neutral-700 shadow hover:bg-white"
-              >
-                <ChevronRightIcon className="size-4" />
-              </button>
-              <span className="absolute bottom-3 left-3 rounded-full bg-black/65 px-2 py-0.5 text-xs font-medium text-white">
-                {photoIdx + 1}/{total}
-              </span>
-            </>
-          ) : null}
-        </div>
+        </button>
+        {total > 1 ? (
+          <>
+            <button
+              type="button"
+              onClick={() => setPhotoIdx((i) => (i - 1 + total) % total)}
+              aria-label="Previous photo"
+              className="pointer-events-auto absolute left-3 top-1/2 z-20 inline-flex size-8 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-neutral-700 shadow hover:bg-white"
+            >
+              <ChevronLeftIcon className="size-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setPhotoIdx((i) => (i + 1) % total)}
+              aria-label="Next photo"
+              className="pointer-events-auto absolute right-3 top-1/2 z-20 inline-flex size-8 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-neutral-700 shadow hover:bg-white"
+            >
+              <ChevronRightIcon className="size-4" />
+            </button>
+            <span className="pointer-events-none absolute bottom-3 left-3 z-20 rounded-full bg-black/65 px-2 py-0.5 text-xs font-medium text-white">
+              {photoIdx + 1}/{total}
+            </span>
+          </>
+        ) : null}
+      </div>
 
         {/* Middle */}
         <div className="flex flex-col gap-3 p-4 sm:p-5">
@@ -934,7 +927,6 @@ function ResultCard({
           </div>
         </div>
       </article>
-    </Link>
   )
 }
 
