@@ -160,7 +160,7 @@ export const StaySearchForm: FC<Props> = ({
   return (
     <form
       onSubmit={handleSubmit}
-      className={clsx('w-full rounded-2xl bg-neutral-50 p-6 sm:p-8 dark:bg-neutral-900', className)}
+      className={clsx('w-full rounded-2xl bg-[#f7f7f7] p-6 sm:p-8 dark:bg-neutral-900', className)}
     >
       {/* Top: mode icons + meta line */}
       <div className="flex flex-wrap items-center justify-between gap-3">
