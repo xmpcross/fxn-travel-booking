@@ -136,9 +136,9 @@ export default async function AirlineDetailPage({
         {/* Overview — longer-form copy about the airline */}
         {supplement?.overview?.length ? (
           <section className="mt-6 rounded-2xl border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900 sm:p-6">
-            <h2 className="text-base font-bold text-neutral-900 dark:text-neutral-100">
+            <h3 className="text-[1.2rem] font-bold text-neutral-900 dark:text-neutral-100">
               Overview
-            </h2>
+            </h3>
             <div className="mt-4 space-y-4">
               {supplement.overview.map((para, i) => (
                 <p
@@ -155,9 +155,9 @@ export default async function AirlineDetailPage({
         {/* About + supplement */}
         <section className="mt-4 grid gap-4 lg:grid-cols-2">
           <div className="rounded-2xl border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
-            <h2 className="text-base font-bold text-neutral-900 dark:text-neutral-100">
+            <h3 className="text-[1.2rem] font-bold text-neutral-900 dark:text-neutral-100">
               About this airline
-            </h2>
+            </h3>
             {supplement ? (
               <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
                 {supplement.alliance ? (
@@ -304,9 +304,9 @@ export default async function AirlineDetailPage({
           </div>
 
           <div className="rounded-2xl border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
-            <h2 className="text-base font-bold text-neutral-900 dark:text-neutral-100">
+            <h3 className="text-[1.2rem] font-bold text-neutral-900 dark:text-neutral-100">
               Find flights
-            </h2>
+            </h3>
             <p className="mt-3 text-sm text-neutral-600 dark:text-neutral-400">
               Run a flight search and we&apos;ll surface available offers operated by{' '}
               {airline.name}. Use the airline filter on the results page to narrow to this carrier
@@ -339,9 +339,9 @@ export default async function AirlineDetailPage({
           <section className="mt-4 grid gap-4 lg:grid-cols-3">
             {supplement.loyaltyProgramme || supplement.cabinClasses?.length ? (
               <div className="rounded-2xl border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
-                <h2 className="text-base font-bold text-neutral-900 dark:text-neutral-100">
+                <h3 className="text-[1.2rem] font-bold text-neutral-900 dark:text-neutral-100">
                   Loyalty &amp; cabins
-                </h2>
+                </h3>
                 {supplement.loyaltyProgramme ? (
                   <div className="mt-3">
                     <div className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
@@ -395,9 +395,9 @@ export default async function AirlineDetailPage({
 
             {supplement.fleetSize || supplement.fleetTypes?.length ? (
               <div className="rounded-2xl border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
-                <h2 className="text-base font-bold text-neutral-900 dark:text-neutral-100">
+                <h3 className="text-[1.2rem] font-bold text-neutral-900 dark:text-neutral-100">
                   Fleet
-                </h2>
+                </h3>
                 {supplement.fleetSize ? (
                   <div className="mt-3">
                     <div className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
@@ -425,9 +425,9 @@ export default async function AirlineDetailPage({
 
             {supplement.partners?.length || supplement.subsidiaries?.length ? (
               <div className="rounded-2xl border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
-                <h2 className="text-base font-bold text-neutral-900 dark:text-neutral-100">
+                <h3 className="text-[1.2rem] font-bold text-neutral-900 dark:text-neutral-100">
                   Partners &amp; subsidiaries
-                </h2>
+                </h3>
                 {supplement.partners?.length ? (
                   <div className="mt-3">
                     <div className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
@@ -521,9 +521,9 @@ export default async function AirlineDetailPage({
           <section className="mt-4 grid gap-4 lg:grid-cols-3">
             {supplement.review ? (
               <div className="rounded-2xl border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
-                <h2 className="text-base font-bold text-neutral-900 dark:text-neutral-100">
+                <h3 className="text-[1.2rem] font-bold text-neutral-900 dark:text-neutral-100">
                   Customer rating
-                </h2>
+                </h3>
                 <div className="mt-3 flex items-baseline gap-3">
                   <div className="text-3xl font-bold text-[#0046be] dark:text-[#3382ff]">
                     {supplement.review.score.toFixed(1)}
@@ -542,9 +542,9 @@ export default async function AirlineDetailPage({
 
             {supplement.baggagePolicy ? (
               <div className="rounded-2xl border border-neutral-200 bg-white p-5 lg:col-span-2 dark:border-neutral-800 dark:bg-neutral-900">
-                <h2 className="text-base font-bold text-neutral-900 dark:text-neutral-100">
+                <h3 className="text-[1.2rem] font-bold text-neutral-900 dark:text-neutral-100">
                   Baggage policy at a glance
-                </h2>
+                </h3>
                 <dl className="mt-3 grid grid-cols-1 gap-x-6 gap-y-3 text-sm sm:grid-cols-2">
                   {supplement.baggagePolicy.cabin ? (
                     <div>
@@ -615,9 +615,9 @@ export default async function AirlineDetailPage({
 
           {supplement?.sampleBookings?.length ? (
             <div className="rounded-2xl border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
-              <h2 className="text-base font-bold text-neutral-900 dark:text-neutral-100">
+              <h3 className="text-[1.2rem] font-bold text-neutral-900 dark:text-neutral-100">
                 Recently booked with {airline.name}
-              </h2>
+              </h3>
               <p className="mt-1 text-xs text-neutral-500">
                 Illustrative — real booking activity will replace these once
                 the database integration is live.
@@ -650,9 +650,9 @@ export default async function AirlineDetailPage({
           <div className="rounded-2xl border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <h2 className="text-base font-bold text-neutral-900 dark:text-neutral-100">
+                <h3 className="text-[1.2rem] font-bold text-neutral-900 dark:text-neutral-100">
                   {airline.name} across our destinations
-                </h2>
+                </h3>
                 <p className="mt-1 text-xs text-neutral-500">
                   Browse every popular destination filtered to {airline.name}.
                 </p>
