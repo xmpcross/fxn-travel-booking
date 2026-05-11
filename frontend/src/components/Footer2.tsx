@@ -152,6 +152,22 @@ export default function Footer2() {
             <ul role="list" className="mt-6 space-y-4">
               <li>
                 <a
+                  href="/flights"
+                  className="text-sm/6 font-light underline text-gray-600 hover:text-gray-900 dark:text-neutral-400"
+                >
+                  Flights
+                </a>
+              </li>
+              <li>
+                <a
+                  href="/stays"
+                  className="text-sm/6 font-light underline text-gray-600 hover:text-gray-900 dark:text-neutral-400"
+                >
+                  Stays
+                </a>
+              </li>
+              <li>
+                <a
                   href="/airlines"
                   className="text-sm/6 font-light underline text-gray-600 hover:text-gray-900 dark:text-neutral-400"
                 >

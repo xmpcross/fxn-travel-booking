@@ -318,7 +318,10 @@ export const FlightSearchForm: FC<Props> = ({ className, openInNewTab = true, in
             type="button"
             onClick={handleSwap}
             aria-label="Swap From and To"
-            className="absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 inline-flex size-8 items-center justify-center rounded-full border border-neutral-200 bg-white text-neutral-600 shadow-sm transition-colors hover:border-orange-400 hover:text-orange-600 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-300"
+            // bottom-anchored so the button vertically centres on the input
+            // rectangles rather than on the (label + input) full container,
+            // which left the icon sitting visibly above the field row.
+            className="absolute bottom-1.5 left-1/2 z-10 inline-flex size-8 -translate-x-1/2 items-center justify-center rounded-full border border-neutral-200 bg-white text-neutral-600 shadow-sm transition-colors hover:border-orange-400 hover:text-orange-600 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-300"
           >
             <ArrowsRightLeftIcon className="size-4" />
           </button>
