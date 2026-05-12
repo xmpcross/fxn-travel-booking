@@ -15,7 +15,7 @@ const navigation: {
   solutions: [
     { name: 'Home', href: '/' },
     { name: 'About', href: '/about' },
-    { name: 'How we worK', href: '/how-we-work' },
+    { name: 'How we work', href: '/how-we-work' },
     { name: 'News', href: '/news' },
     { name: 'Contact', href: '/contact' },
   ],

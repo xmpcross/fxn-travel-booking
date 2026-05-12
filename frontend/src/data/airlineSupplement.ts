@@ -1061,15 +1061,36 @@ const SUPPLEMENTS: Record<string, AirlineSupplement> = {
   },
 }
 
+// Auto-generated supplements (separate file) backfill the hand-curated set.
+// Per-airline merge is field-level so the sparse hand entries (e.g. the
+// original 6E with just hubs/founded/country/HQ) keep their authoritative
+// values while picking up overview/fleet/partners/loyalty from the
+// generated entry. Hand-curated fields ALWAYS win on conflict.
+import { GENERATED_SUPPLEMENTS } from './airlineSupplement.generated'
+
+const ALL_SUPPLEMENT_KEYS = new Set([
+  ...Object.keys(GENERATED_SUPPLEMENTS),
+  ...Object.keys(SUPPLEMENTS),
+])
+
+function lookupMerged(iata: string): AirlineSupplement | null {
+  const gen = GENERATED_SUPPLEMENTS[iata]
+  const hand = SUPPLEMENTS[iata]
+  if (!gen && !hand) return null
+  return { ...(gen ?? {}), ...(hand ?? {}) }
+}
+
 export function getAirlineSupplement(iataCode: string | null | undefined): AirlineSupplement | null {
   if (!iataCode) return null
-  return SUPPLEMENTS[iataCode.toUpperCase()] ?? null
+  return lookupMerged(iataCode.toUpperCase())
 }
 
 export function getSupplementedIataCodes(): string[] {
-  return Object.keys(SUPPLEMENTS)
+  return Array.from(ALL_SUPPLEMENT_KEYS)
 }
 
 export function hasSupplement(iataCode: string | null | undefined): boolean {
-  return Boolean(iataCode && SUPPLEMENTS[iataCode.toUpperCase()])
+  if (!iataCode) return false
+  const upper = iataCode.toUpperCase()
+  return upper in GENERATED_SUPPLEMENTS || upper in SUPPLEMENTS
 }

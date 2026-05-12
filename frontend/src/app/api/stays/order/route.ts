@@ -1,6 +1,8 @@
 import { Prisma } from "../../../../../generated/prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 import { createStayBooking, type StayBookingGuest } from "@/lib/duffel";
+import { sendStayBookingConfirmation } from "@/lib/email";
+import { logError } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 
 type CreateStayOrderBody = {
@@ -40,8 +42,10 @@ function getErrorMessage(error: unknown) {
 }
 
 export async function POST(request: NextRequest) {
+  let capturedBody: CreateStayOrderBody | null = null;
   try {
     const body = (await request.json()) as CreateStayOrderBody;
+    capturedBody = body;
 
     if (!body.quoteId || typeof body.quoteId !== "string") {
       return NextResponse.json(
@@ -125,9 +129,33 @@ export async function POST(request: NextRequest) {
           }
         });
       } catch (persistError) {
-        console.error(
-          "Stay booking succeeded at Duffel but Prisma persistence failed:",
-          { duffelOrderId: bookingRecord.id, error: persistError }
+        logError("stay.order.persist_failed", persistError, {
+          duffelOrderId: bookingRecord.id,
+          bookingReference: bookingRecord.reference ?? null,
+          totalAmount: bookingRecord.total_amount ?? null,
+          currency: bookingRecord.total_currency ?? null,
+        });
+      }
+
+      // Confirmation email — fire-and-forget; Resend will log and skip if
+      // no API key is configured.
+      const leadGuest = body.guests?.[0];
+      if (body.email) {
+        const accommodation = (bookingRecord as { accommodation?: { name?: string } }).accommodation;
+        sendStayBookingConfirmation({
+          toEmail: body.email,
+          guestName: leadGuest
+            ? `${leadGuest.given_name ?? ""} ${leadGuest.family_name ?? ""}`.trim()
+            : "",
+          bookingReference: bookingRecord.reference ?? null,
+          duffelOrderId: bookingRecord.id,
+          totalAmount: bookingRecord.total_amount ?? null,
+          currency: bookingRecord.total_currency ?? null,
+          accommodationName: accommodation?.name,
+          checkInDate: (bookingRecord as { check_in_date?: string }).check_in_date,
+          checkOutDate: (bookingRecord as { check_out_date?: string }).check_out_date,
+        }).catch((err) =>
+          console.error("Stay confirmation email failed:", err)
         );
       }
     }
@@ -138,7 +166,10 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     const message = getErrorMessage(error);
-    console.error("Stay booking creation failed:", error);
+    logError("stay.order.create_failed", error, {
+      quoteId: capturedBody?.quoteId ?? null,
+      guestCount: capturedBody?.guests?.length ?? null,
+    });
     return NextResponse.json({ error: message }, { status: 400 });
   }
 }

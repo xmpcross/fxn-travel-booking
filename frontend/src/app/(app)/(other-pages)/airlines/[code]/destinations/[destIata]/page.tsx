@@ -1,5 +1,6 @@
 import { ArrowRightIcon, ChevronLeftIcon, ClockIcon } from '@heroicons/react/24/outline'
 import type { Metadata } from 'next'
+import { unstable_cache } from 'next/cache'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
@@ -109,7 +110,7 @@ function extractOffer(raw: unknown): RouteOffer | null {
   }
 }
 
-async function findCheapestOffers(input: {
+async function findCheapestOffersUncached(input: {
   origin: string
   destination: string
   departureDate: string
@@ -133,9 +134,6 @@ async function findCheapestOffers(input: {
     const filtered = input.airlineIata
       ? offers.filter((o) => {
           const op = o.outbound.operatingCarrier ?? ''
-          // We compare against the airline name since the offer carries
-          // human-readable names — IATA isn't directly on the segment in
-          // our extracted shape. Fallback: keep all if none match.
           return op.length > 0
         })
       : offers
@@ -147,6 +145,33 @@ async function findCheapestOffers(input: {
     console.error('Route page: Duffel search failed', err)
     return []
   }
+}
+
+// Explicit cache wrapper. Page-level `revalidate = 86_400` caches the
+// rendered HTML, but the Duffel SDK uses fetch paths Next.js can't auto-
+// memoise — so without this every route page would re-call Duffel on every
+// request, even with ISR. Cache key is the full input tuple so each
+// origin/dest/airline triple gets its own 24h slot.
+async function findCheapestOffers(input: {
+  origin: string
+  destination: string
+  departureDate: string
+  returnDate: string
+  airlineIata: string | null
+}): Promise<RouteOffer[]> {
+  const cached = unstable_cache(
+    findCheapestOffersUncached,
+    [
+      'route-page-offers',
+      input.origin,
+      input.destination,
+      input.departureDate,
+      input.returnDate,
+      input.airlineIata ?? 'any',
+    ],
+    { revalidate: 86_400, tags: ['route-page-offers'] },
+  )
+  return cached(input)
 }
 
 export async function generateMetadata({
