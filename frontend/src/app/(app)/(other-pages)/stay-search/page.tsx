@@ -14,6 +14,7 @@ import { useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useMemo, useState } from 'react'
 
 import { AdPlaceholder } from '@/components/AdPlaceholder'
+import { StaySearchForm } from '@/components/HeroSearchForm/StaySearchForm'
 import { useCurrency } from '@/contexts/CurrencyContext'
 
 // --- types -----------------------------------------------------------------
@@ -154,6 +155,7 @@ export default function StaysPage() {
 function StaysContent() {
   const searchParams = useSearchParams()
   const params = searchParams ?? new URLSearchParams()
+  const { format } = useCurrency()
 
   const destinationQuery = params.get('destinationQuery') ?? ''
   const checkInDate = params.get('checkInDate')
@@ -171,6 +173,7 @@ function StaysContent() {
   const [priceRange, setPriceRange] = useState<[number, number] | null>(null)
   const [starFilter, setStarFilter] = useState<Set<number>>(new Set())
   const [amenityFilter, setAmenityFilter] = useState<Set<string>>(new Set())
+  const [brandFilter, setBrandFilter] = useState<Set<string>>(new Set())
   const [minReviewScore, setMinReviewScore] = useState<number | null>(null)
   const [sortBy, setSortBy] = useState<SortMode>('picks')
   const [favorites, setFavorites] = useState<Set<string>>(new Set())
@@ -235,29 +238,102 @@ function StaysContent() {
     }
   }, [results, priceRange, perNightMin, perNightMax])
 
-  // Amenities actually present in the current result set (so we don't show
-  // filters that would always return zero results).
-  const availableAmenities = useMemo(() => {
-    const set = new Set<string>()
+  // Histogram bins — 28 equal-width buckets across the [perNightMin, perNightMax]
+  // range, so the price slider can render a tiny distribution chart above the
+  // handles (matches the Expedia "Total price" filter).
+  const priceBuckets = useMemo(() => {
+    const COUNT = 28
+    if (results.length === 0 || perNightMax <= perNightMin) return [] as number[]
+    const range = perNightMax - perNightMin
+    const bins = new Array(COUNT).fill(0)
     for (const r of results) {
+      const perNight = Number(r.cheapest_rate_total_amount ?? 0) / nights
+      if (perNight <= 0) continue
+      const idx = Math.min(
+        COUNT - 1,
+        Math.max(0, Math.floor(((perNight - perNightMin) / range) * COUNT)),
+      )
+      bins[idx] += 1
+    }
+    return bins
+  }, [results, perNightMin, perNightMax, nights])
+
+  // Amenities actually present in the current result set with how many
+  // properties offer each.
+  const amenityOptions = useMemo(() => {
+    const counts = new Map<string, number>()
+    for (const r of results) {
+      const seen = new Set<string>()
       for (const a of r.accommodation?.amenities ?? []) {
-        if (a.type && AMENITY_LABELS[a.type]) set.add(a.type)
+        if (a.type && AMENITY_LABELS[a.type] && !seen.has(a.type)) {
+          counts.set(a.type, (counts.get(a.type) ?? 0) + 1)
+          seen.add(a.type)
+        }
       }
     }
-    return Array.from(set).sort((a, b) =>
-      AMENITY_LABELS[a].localeCompare(AMENITY_LABELS[b]),
-    )
+    return Array.from(counts.entries())
+      .map(([key, count]) => ({ key, label: AMENITY_LABELS[key], count }))
+      .sort((a, b) => b.count - a.count)
   }, [results])
 
-  // Star ratings actually present.
-  const availableStars = useMemo(() => {
-    const set = new Set<number>()
+  // Star ratings with count + cheapest-per-night so each row carries a
+  // "From" price (Expedia "Property class" filter).
+  const propertyClassOptions = useMemo(() => {
+    const map = new Map<number, { count: number; fromPerNight: number }>()
     for (const r of results) {
       const n = Number(r.accommodation?.rating ?? 0)
-      if (n > 0) set.add(n)
+      if (n <= 0) continue
+      const perNight = Number(r.cheapest_rate_total_amount ?? 0) / nights
+      const cur = map.get(n)
+      if (cur) {
+        cur.count += 1
+        if (perNight > 0 && perNight < cur.fromPerNight) cur.fromPerNight = perNight
+      } else {
+        map.set(n, { count: 1, fromPerNight: perNight > 0 ? perNight : Infinity })
+      }
     }
-    return Array.from(set).sort((a, b) => b - a)
+    return Array.from(map.entries())
+      .map(([stars, v]) => ({ stars, count: v.count, fromPerNight: v.fromPerNight }))
+      .sort((a, b) => b.stars - a.stars)
+  }, [results, nights])
+
+  // Brand options — Duffel returns `accommodation.brand` as either an
+  // object `{name,id}` or a bare string. Normalise to a name + count map.
+  const brandOptions = useMemo(() => {
+    const counts = new Map<string, number>()
+    for (const r of results) {
+      const b = r.accommodation?.brand
+      const name = typeof b === 'string' ? b : b?.name ?? null
+      if (!name) continue
+      counts.set(name, (counts.get(name) ?? 0) + 1)
+    }
+    return Array.from(counts.entries())
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count)
   }, [results])
+
+  // Guest rating tiers with count + cheapest From — mirrors Expedia.
+  const guestRatingOptions = useMemo(() => {
+    const tiers = [
+      { id: null as number | null, label: 'Any', threshold: 0 },
+      { id: 9, label: 'Wonderful 9+', threshold: 9 },
+      { id: 8, label: 'Very good 8+', threshold: 8 },
+      { id: 7, label: 'Good 7+', threshold: 7 },
+    ]
+    return tiers.map((t) => {
+      let count = 0
+      let fromPerNight = Infinity
+      for (const r of results) {
+        const score = Number(r.accommodation?.review_score ?? 0)
+        if (score >= t.threshold) {
+          count += 1
+          const perNight = Number(r.cheapest_rate_total_amount ?? 0) / nights
+          if (perNight > 0 && perNight < fromPerNight) fromPerNight = perNight
+        }
+      }
+      return { ...t, count, fromPerNight }
+    })
+  }, [results, nights])
 
   const cityLabel = useMemo(() => {
     if (destinationQuery) return destinationQuery
@@ -279,6 +355,11 @@ function StaysContent() {
         if (starFilter.size > 0 && !starFilter.has(Number(acc.rating ?? 0))) return false
         if (amenityFilter.size > 0) {
           for (const a of amenityFilter) if (!hasAmenity(acc, a)) return false
+        }
+        if (brandFilter.size > 0) {
+          const b = acc.brand
+          const name = typeof b === 'string' ? b : b?.name ?? null
+          if (!name || !brandFilter.has(name)) return false
         }
         if (minReviewScore != null && Number(acc.review_score ?? 0) < minReviewScore) return false
         if (priceRange) {
@@ -310,7 +391,18 @@ function StaysContent() {
           }
         }
       })
-  }, [results, textQuery, starFilter, amenityFilter, minReviewScore, priceRange, sortBy, nights, perNightMax])
+  }, [
+    results,
+    textQuery,
+    starFilter,
+    amenityFilter,
+    brandFilter,
+    minReviewScore,
+    priceRange,
+    sortBy,
+    nights,
+    perNightMax,
+  ])
 
   function toggleFavorite(id: string) {
     setFavorites((prev) => {
@@ -324,75 +416,154 @@ function StaysContent() {
   return (
     <main className="bg-neutral-50 pb-16 dark:bg-neutral-950">
       <div className="container py-6">
-        {/* Breadcrumb / context */}
-        <nav className="mb-4 text-xs text-neutral-500">
-          <Link href="/stays" className="hover:text-orange-600">
-            Stays
-          </Link>
-          {cityLabel ? <> · {cityLabel}</> : null}
-          {checkInDate && checkOutDate ? (
-            <>
-              {' '}
-              · {checkInDate} → {checkOutDate} · {nights} night{nights === 1 ? '' : 's'} · {guests}{' '}
-              guest{guests === 1 ? '' : 's'}
-            </>
-          ) : null}
-        </nav>
-
+        {/* Two-row grid: row 1 has the search form spanning the left two
+            columns; the ad column on the right spans both rows so it sits
+            beside the search form (Expedia layout). Row 2 has filters and
+            results in the same left two columns. */}
         <div className="grid gap-6 lg:grid-cols-[280px_1fr_260px]">
-          {/* Sidebar filters */}
-          <aside className="space-y-5">
-            <MapCard />
+          <div className="lg:col-span-2">
+            <StaySearchForm
+              openInNewTab={false}
+              variant="compact"
+              initial={{
+                destinationQuery: searchParams?.get('destinationQuery') ?? undefined,
+                checkInDate: searchParams?.get('checkInDate') ?? undefined,
+                checkOutDate: searchParams?.get('checkOutDate') ?? undefined,
+                rooms: Number(searchParams?.get('rooms')) || undefined,
+                guests: Number(searchParams?.get('guests')) || undefined,
+              }}
+            />
+          </div>
 
-            <SidebarSection>
+          {/* Ad column — placed before the sidebar/main row so the grid
+              auto-flow puts filters + results into the remaining slots on
+              row 2. `row-span-2` makes the ad fill both rows on the right. */}
+          <div className="lg:row-span-2">
+            <AdPlaceholder />
+          </div>
+
+          {/* Sidebar filters — same layout as flight-search: "Filter by"
+              heading then a stack of filter sections. */}
+          <aside className="space-y-6">
+            <h2 className="text-lg font-bold text-neutral-900 dark:text-neutral-100">
+              Filter by
+            </h2>
+
+            <Link
+              href={`/stay-search/map?${searchParams?.toString() ?? ''}`}
+              className="block"
+              aria-label="Search on map"
+            >
+              <MapCard />
+            </Link>
+
+            <SidebarSection title="Search by property name">
               <div className="relative">
                 <MagnifyingGlassIcon className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-neutral-400" />
                 <input
                   type="text"
                   value={textQuery}
                   onChange={(e) => setTextQuery(e.target.value)}
-                  placeholder="Text search"
+                  placeholder="e.g. Marriott"
                   className="w-full rounded-full bg-neutral-100 py-2.5 pl-9 pr-3 text-sm placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-orange-500 dark:bg-neutral-800"
                 />
               </div>
             </SidebarSection>
 
             {priceRange && perNightMax > perNightMin ? (
-              <SidebarSection title="Your budget (per night)">
+              <SidebarSection title="Total price">
                 <PriceSlider
                   min={perNightMin}
                   max={perNightMax}
                   value={priceRange}
                   onChange={setPriceRange}
                   currency={currency}
+                  buckets={priceBuckets}
                 />
               </SidebarSection>
             ) : null}
 
-            {availableStars.length > 0 ? (
-              <SidebarSection title="Star rating">
-                <StarFilter
-                  available={availableStars}
-                  value={starFilter}
-                  onChange={setStarFilter}
-                />
+            {propertyClassOptions.length > 0 ? (
+              <SidebarSection title="Property class" rightHeader="From">
+                {propertyClassOptions.map((opt) => (
+                  <PricedCheckboxRow
+                    key={`star-${opt.stars}`}
+                    label={`Property class: ${opt.stars} (${opt.count})`}
+                    checked={starFilter.has(opt.stars)}
+                    onChange={() =>
+                      setStarFilter((cur) => {
+                        const next = new Set(cur)
+                        if (next.has(opt.stars)) next.delete(opt.stars)
+                        else next.add(opt.stars)
+                        return next
+                      })
+                    }
+                    price={
+                      Number.isFinite(opt.fromPerNight) && opt.fromPerNight > 0
+                        ? format(Math.round(opt.fromPerNight), currency)
+                        : ''
+                    }
+                  />
+                ))}
               </SidebarSection>
             ) : null}
 
-            <SidebarSection title="Guest rating">
-              <GuestRatingFilter value={minReviewScore} onChange={setMinReviewScore} />
+            <SidebarSection title="Guest rating" rightHeader="From">
+              {guestRatingOptions.map((opt) => (
+                <label
+                  key={`rating-${opt.label}`}
+                  className="flex cursor-pointer items-center gap-2.5 py-1 text-sm text-neutral-700 dark:text-neutral-300"
+                >
+                  <input
+                    type="radio"
+                    name="guest-rating-filter"
+                    checked={minReviewScore === opt.id}
+                    onChange={() => setMinReviewScore(opt.id)}
+                    className="size-4 shrink-0 border-neutral-300 text-orange-500 focus:ring-orange-500 dark:border-neutral-600"
+                  />
+                  <span className="flex-1 truncate">
+                    {opt.label}
+                    {opt.id != null ? ` (${opt.count})` : ''}
+                  </span>
+                  <span className="shrink-0 text-xs text-neutral-700 dark:text-neutral-300">
+                    {Number.isFinite(opt.fromPerNight) && opt.fromPerNight > 0
+                      ? format(Math.round(opt.fromPerNight), currency)
+                      : ''}
+                  </span>
+                </label>
+              ))}
             </SidebarSection>
 
-            {availableAmenities.length > 0 ? (
+            {amenityOptions.length > 0 ? (
               <SidebarSection
-                title={cityLabel ? `Amenities in ${cityLabel}` : 'Amenities'}
+                title={cityLabel ? `Property amenities in ${cityLabel}` : 'Property amenities'}
               >
-                {availableAmenities.map((key) => (
+                {amenityOptions.map((opt) => (
                   <CheckboxRow
-                    key={key}
-                    label={AMENITY_LABELS[key]}
-                    checked={amenityFilter.has(key)}
-                    onChange={(c) => toggleAmenity(setAmenityFilter, key, c)}
+                    key={opt.key}
+                    label={`${opt.label} (${opt.count})`}
+                    checked={amenityFilter.has(opt.key)}
+                    onChange={(c) => toggleAmenity(setAmenityFilter, opt.key, c)}
+                  />
+                ))}
+              </SidebarSection>
+            ) : null}
+
+            {brandOptions.length > 0 ? (
+              <SidebarSection title="Property brand">
+                {brandOptions.map((opt) => (
+                  <CheckboxRow
+                    key={opt.name}
+                    label={`${opt.name} (${opt.count})`}
+                    checked={brandFilter.has(opt.name)}
+                    onChange={(c) => {
+                      setBrandFilter((cur) => {
+                        const next = new Set(cur)
+                        if (c) next.add(opt.name)
+                        else next.delete(opt.name)
+                        return next
+                      })
+                    }}
                   />
                 ))}
               </SidebarSection>
@@ -455,9 +626,6 @@ function StaysContent() {
               </div>
             )}
           </section>
-
-          {/* Right column: image / ad placeholder */}
-          <AdPlaceholder />
         </div>
       </div>
     </main>
@@ -479,14 +647,59 @@ function toggleAmenity(
 
 // --- sidebar components ----------------------------------------------------
 
-function SidebarSection({ title, children }: { title?: string; children: React.ReactNode }) {
+function SidebarSection({
+  title,
+  rightHeader,
+  children,
+}: {
+  title?: string
+  /** Right-aligned column header (e.g. "From") next to the title. */
+  rightHeader?: string
+  children: React.ReactNode
+}) {
   return (
     <div className="rounded-2xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
-      {title ? (
-        <h3 className="mb-3 text-sm font-bold text-neutral-900 dark:text-neutral-100">{title}</h3>
+      {title || rightHeader ? (
+        <div className="mb-3 flex items-baseline justify-between">
+          {title ? (
+            <h3 className="text-sm font-bold text-neutral-900 dark:text-neutral-100">{title}</h3>
+          ) : (
+            <span />
+          )}
+          {rightHeader ? (
+            <span className="text-xs font-medium text-neutral-500">{rightHeader}</span>
+          ) : null}
+        </div>
       ) : null}
       <div className="space-y-2">{children}</div>
     </div>
+  )
+}
+
+function PricedCheckboxRow({
+  label,
+  checked,
+  onChange,
+  price,
+}: {
+  label: string
+  checked: boolean
+  onChange: () => void
+  price: string
+}) {
+  return (
+    <label className="flex cursor-pointer items-center gap-2.5 py-1 text-sm text-neutral-700 dark:text-neutral-300">
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={onChange}
+        className="size-4 shrink-0 rounded border-neutral-300 text-orange-500 focus:ring-orange-500 dark:border-neutral-600 dark:bg-neutral-800"
+      />
+      <span className="flex-1 truncate">{label}</span>
+      {price ? (
+        <span className="shrink-0 text-xs text-neutral-700 dark:text-neutral-300">{price}</span>
+      ) : null}
+    </label>
   )
 }
 
@@ -647,23 +860,58 @@ function PriceSlider({
   value,
   onChange,
   currency,
+  buckets,
 }: {
   min: number
   max: number
   value: [number, number]
   onChange: (v: [number, number]) => void
   currency: string
+  /** Histogram of result counts across the [min, max] range. */
+  buckets: number[]
 }) {
   const [lo, hi] = value
+  const range = Math.max(1, max - min)
+  const loPct = ((lo - min) / range) * 100
+  const hiPct = ((hi - min) / range) * 100
+  const maxCount = Math.max(1, ...buckets)
+  const atMax = hi >= max
+
   return (
     <div>
-      <div className="relative my-3 h-1.5 rounded-full bg-neutral-200 dark:bg-neutral-700">
+      {/* Min / Max boxes */}
+      <div className="grid grid-cols-2 gap-2">
+        <BudgetField label="Min" value={lo} currency={currency} suffix="" />
+        <BudgetField label="Max" value={hi} currency={currency} suffix={atMax ? '+' : ''} />
+      </div>
+
+      {/* Histogram — each bucket is a vertical bar; bars whose price range
+          falls inside the current [lo, hi] selection are full-blue, the rest
+          are dimmed. */}
+      {buckets.length > 0 ? (
+        <div className="mt-4 flex h-16 items-end gap-0.5 px-0.5">
+          {buckets.map((count, i) => {
+            const bucketLo = min + ((max - min) * i) / buckets.length
+            const bucketHi = min + ((max - min) * (i + 1)) / buckets.length
+            const inRange = bucketHi >= lo && bucketLo <= hi
+            const h = `${(count / maxCount) * 100}%`
+            return (
+              <div
+                key={i}
+                className={`flex-1 rounded-t-sm ${inRange ? 'bg-blue-500' : 'bg-neutral-200 dark:bg-neutral-700'}`}
+                style={{ height: count === 0 ? '2px' : h }}
+              />
+            )
+          })}
+        </div>
+      ) : null}
+
+      {/* Slider track + dual handles */}
+      <div className="relative h-5">
+        <div className="absolute left-0 right-0 top-1/2 h-1 -translate-y-1/2 rounded-full bg-neutral-200 dark:bg-neutral-700" />
         <div
-          className="absolute h-1.5 rounded-full bg-orange-500"
-          style={{
-            left: `${((lo - min) / Math.max(1, max - min)) * 100}%`,
-            right: `${((max - hi) / Math.max(1, max - min)) * 100}%`,
-          }}
+          className="absolute top-1/2 h-1 -translate-y-1/2 rounded-full bg-blue-600"
+          style={{ left: `${loPct}%`, right: `${100 - hiPct}%` }}
         />
         <input
           type="range"
@@ -671,7 +919,7 @@ function PriceSlider({
           max={max}
           value={lo}
           onChange={(e) => onChange([Math.min(Number(e.target.value), hi), hi])}
-          className="pointer-events-auto absolute left-0 top-1/2 h-1.5 w-full -translate-y-1/2 cursor-pointer appearance-none bg-transparent [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:size-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:shadow [&::-webkit-slider-thumb]:ring-2 [&::-webkit-slider-thumb]:ring-orange-500"
+          className="pointer-events-auto absolute left-0 top-1/2 h-5 w-full -translate-y-1/2 cursor-pointer appearance-none bg-transparent [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:size-5 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-blue-600 [&::-webkit-slider-thumb]:shadow"
         />
         <input
           type="range"
@@ -679,26 +927,31 @@ function PriceSlider({
           max={max}
           value={hi}
           onChange={(e) => onChange([lo, Math.max(Number(e.target.value), lo)])}
-          className="pointer-events-auto absolute left-0 top-1/2 h-1.5 w-full -translate-y-1/2 cursor-pointer appearance-none bg-transparent [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:size-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:shadow [&::-webkit-slider-thumb]:ring-2 [&::-webkit-slider-thumb]:ring-orange-500"
+          className="pointer-events-auto absolute left-0 top-1/2 h-5 w-full -translate-y-1/2 cursor-pointer appearance-none bg-transparent [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:size-5 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-blue-600 [&::-webkit-slider-thumb]:shadow"
         />
-      </div>
-      <div className="mt-4 grid grid-cols-2 gap-2 text-xs">
-        <BudgetField label="MIN" value={lo} currency={currency} />
-        <BudgetField label="MAX" value={hi} currency={currency} />
       </div>
     </div>
   )
 }
 
-function BudgetField({ label, value, currency }: { label: string; value: number; currency: string }) {
+function BudgetField({
+  label,
+  value,
+  currency,
+  suffix,
+}: {
+  label: string
+  value: number
+  currency: string
+  suffix?: string
+}) {
   const { format } = useCurrency()
   return (
-    <div className="rounded-lg border border-neutral-200 px-2.5 py-1.5 dark:border-neutral-700">
-      <div className="text-[10px] font-semibold uppercase tracking-wide text-neutral-500">
-        {label}
-      </div>
-      <div className="text-sm font-medium text-neutral-800 dark:text-neutral-100">
+    <div className="rounded-lg border border-neutral-200 px-3 py-2 dark:border-neutral-700">
+      <div className="text-xs text-neutral-500">{label}</div>
+      <div className="text-base font-semibold text-neutral-900 dark:text-neutral-100">
         {format(Math.round(value), currency)}
+        {suffix}
       </div>
     </div>
   )
@@ -785,20 +1038,11 @@ function ResultCard({
   const stars = Number(acc?.rating ?? 0)
   const reviewScore = acc?.review_score == null ? null : Number(acc.review_score)
   const reviewCount = acc?.review_count == null ? null : Number(acc.review_count)
-  const city =
-    acc?.location?.city_name ??
-    acc?.location?.address?.city_name ??
-    ''
-  const region = acc?.location?.address?.region ?? ''
   const totalAmount = Number(result.cheapest_rate_total_amount ?? 0)
   const perNight = totalAmount / nights
   const currency = result.cheapest_rate_currency ?? ''
 
   const topAmenity = acc?.amenities?.[0]?.description
-  const brandName =
-    typeof acc?.brand === 'string'
-      ? acc.brand
-      : (acc?.brand?.name ?? null)
 
   return (
     <article className="group relative grid overflow-hidden rounded-[4px] border border-neutral-200 bg-white shadow-sm transition-shadow hover:shadow-md lg:grid-cols-[260px_1fr_220px] dark:border-neutral-800 dark:bg-neutral-900">
@@ -814,16 +1058,16 @@ function ResultCard({
       {/* Photo. pointer-events-none lets clicks on the photo area pass through
           to the stretched link; the interactive buttons re-enable pointer
           events on themselves. */}
-      <div className="pointer-events-none relative z-10 aspect-[4/3] lg:aspect-auto lg:max-h-[550px]">
+      <div className="pointer-events-none relative z-10">
         {photos[photoIdx] ? (
           <img
             src={photos[photoIdx].url}
             alt={acc?.name ?? 'Hotel photo'}
-            className="pointer-events-none size-full object-cover"
+            className="pointer-events-none block h-auto w-full object-cover"
             loading="lazy"
           />
         ) : (
-          <div className="pointer-events-none flex size-full items-center justify-center bg-neutral-100 text-xs text-neutral-400 dark:bg-neutral-800">
+          <div className="pointer-events-none flex aspect-[4/3] w-full items-center justify-center bg-neutral-100 text-xs text-neutral-400 dark:bg-neutral-800">
             No photo
           </div>
         )}
@@ -866,15 +1110,7 @@ function ResultCard({
 
         {/* Middle */}
         <div className="flex flex-col gap-3 p-4 sm:p-5">
-          {brandName ? (
-            <span className="inline-flex w-fit items-center gap-1 text-xs font-semibold text-orange-600">
-              <svg className="size-3.5" viewBox="0 0 20 20" fill="currentColor">
-                <path d="M10 1l2.5 5.5L18 7.5l-4 4 1 6L10 14.5 5 17.5l1-6-4-4 5.5-1L10 1z" />
-              </svg>
-              {brandName} Preferred
-            </span>
-          ) : null}
-          <h3 className="text-sm font-semibold text-neutral-900 group-hover:text-orange-600 dark:text-neutral-100 dark:group-hover:text-orange-400">
+          <h3 className="text-base font-semibold text-neutral-900 group-hover:text-orange-600 dark:text-neutral-100 dark:group-hover:text-orange-400">
             {acc?.name ?? 'Accommodation'}
           </h3>
           {stars > 0 ? (
@@ -883,20 +1119,6 @@ function ResultCard({
                 <StarSolid key={i} className="size-4 text-[#ffce00]" />
               ))}
             </div>
-          ) : null}
-          {city || region ? (
-            <div className="flex items-start gap-1.5 text-sm">
-              <MapPinIcon className="mt-0.5 size-4 shrink-0 text-orange-500" />
-              <span className="font-medium text-orange-600">
-                {city}
-                {region ? `, ${region}` : ''}
-              </span>
-            </div>
-          ) : null}
-          {acc?.location?.address?.line_one ? (
-            <p className="line-clamp-2 text-xs text-neutral-500">
-              {acc.location.address.line_one}
-            </p>
           ) : null}
           {topAmenity ? (
             <span className="inline-flex w-fit items-center gap-1 rounded-md bg-sky-50 px-2.5 py-1 text-xs font-medium text-sky-700 dark:bg-sky-950/40 dark:text-sky-300">
@@ -927,15 +1149,21 @@ function ResultCard({
             <div />
           )}
           <div className="text-right">
-            <div className="text-base font-semibold text-[#0046be] dark:text-[#3382ff]">
-              {format(perNight, currency)}
+            <div className="text-[1.2rem] font-bold text-neutral-900 dark:text-neutral-100">
+              {format(totalAmount, currency)}
             </div>
-            <p className="text-xs text-neutral-500">per night incl. taxes &amp; fees</p>
             {nights > 1 ? (
-              <p className="mt-0.5 text-xs text-neutral-400">
-                {format(totalAmount, currency)} total
+              <p className="text-[12px] text-neutral-500">
+                for {nights} night{nights === 1 ? '' : 's'}
               </p>
             ) : null}
+            <div className="mt-1 flex items-baseline justify-end gap-1.5">
+              <span className="text-[12px] text-neutral-900 dark:text-neutral-100">
+                {format(perNight, currency)}
+              </span>
+              <span className="text-[12px] text-neutral-500">per night</span>
+            </div>
+            <p className="text-[12px] text-neutral-500">includes taxes &amp; fees</p>
           </div>
         </div>
       </article>

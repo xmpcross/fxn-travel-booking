@@ -1,6 +1,7 @@
 'use client'
 
 import { Popover, PopoverButton, PopoverPanel } from '@headlessui/react'
+import { UserIcon } from '@heroicons/react/24/outline'
 import { AirplaneTakeOffIcon } from '@/components/icons/AirplaneTakeOffIcon'
 import { BedroomIcon } from '@/components/icons/BedroomIcon'
 import clsx from 'clsx'
@@ -23,6 +24,12 @@ interface Props {
   openInNewTab?: boolean
   initial?: StaySearchFormInitial
   onSwitchToFlights?: () => void
+  /**
+   * Visual treatment.
+   * - `hero` (default): full card with mode-icon row.
+   * - `compact`: results-page treatment — no surrounding card, no mode icons.
+   */
+  variant?: 'hero' | 'compact'
 }
 
 const inputClass =
@@ -85,7 +92,9 @@ export const StaySearchForm: FC<Props> = ({
   openInNewTab = true,
   initial,
   onSwitchToFlights,
+  variant = 'hero',
 }) => {
+  const isCompact = variant === 'compact'
   const router = useRouter()
 
   const [rooms, setRooms] = useState(Math.max(1, initial?.rooms ?? 1))
@@ -97,19 +106,20 @@ export const StaySearchForm: FC<Props> = ({
     initial?.destinationQuery
   )
 
-  // Detect visitor's city from IP-based geolocation when no destination was passed in
-  // (i.e. on the home page). Mirrors the auto-detect behaviour of FlightSearchForm.
+  // Detect visitor's city via the server-side /api/geo/city endpoint, which
+  // reads X-Forwarded-For + caches lookups + dodges the CORS/rate-limit issues
+  // of calling ipapi.co directly from the browser.
   useEffect(() => {
     if (initial?.destinationQuery) return
     let cancelled = false
     ;(async () => {
       try {
-        const ipRes = await fetch('https://ipapi.co/json/')
-        if (!ipRes.ok) return
-        const ipData = (await ipRes.json()) as { city?: string }
-        if (ipData.city && !cancelled) setDestinationDefault(ipData.city)
+        const r = await fetch('/api/geo/city')
+        if (!r.ok) return
+        const data = (await r.json()) as { city?: string | null }
+        if (data.city && !cancelled) setDestinationDefault(data.city)
       } catch {
-        // Network/CORS issues — silently leave the field empty.
+        // Network error — silently leave the field empty.
       }
     })()
     return () => {
@@ -160,72 +170,82 @@ export const StaySearchForm: FC<Props> = ({
   return (
     <form
       onSubmit={handleSubmit}
-      className={clsx('w-full rounded-2xl bg-neutral-50 p-6 sm:p-8 dark:bg-neutral-900', className)}
+      className={clsx(
+        'w-full',
+        !isCompact && 'rounded-2xl bg-neutral-50 p-6 sm:p-8 dark:bg-neutral-900',
+        className
+      )}
     >
-      {/* Top: mode icons + meta line */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          {onSwitchToFlights ? (
+      {!isCompact && (
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            {onSwitchToFlights ? (
+              <button
+                type="button"
+                aria-label="Flights"
+                onClick={onSwitchToFlights}
+                className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-neutral-300 text-neutral-500 hover:border-orange-500 hover:text-orange-500 dark:border-neutral-700"
+              >
+                <AirplaneTakeOffIcon className="size-5" />
+              </button>
+            ) : null}
             <button
               type="button"
-              aria-label="Flights"
-              onClick={onSwitchToFlights}
-              className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-neutral-300 text-neutral-500 hover:border-orange-500 hover:text-orange-500 dark:border-neutral-700"
+              aria-pressed="true"
+              aria-label="Stays"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-500 text-white shadow-sm"
             >
-              <AirplaneTakeOffIcon className="size-5" />
+              <BedroomIcon className="size-5" />
             </button>
-          ) : null}
-          <button
-            type="button"
-            aria-pressed="true"
-            aria-label="Stays"
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-500 text-white shadow-sm"
-          >
-            <BedroomIcon className="size-5" />
-          </button>
+          </div>
         </div>
+      )}
 
-      </div>
-
-      {/* Field grid */}
-      <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-        <div className="lg:col-span-2">
+      {/* Field grid — 8 cols on lg: destination=3, dates=2, travellers=2,
+          search=1. Mirrors the FlightSearchForm pill layout. */}
+      <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-8">
+        <div className="sm:col-span-2 lg:col-span-3">
           <StayDestinationInput
             /* Re-mount once when geolocation resolves so defaultValue is honoured. */
             key={`destination-${destinationDefault ?? 'pending'}`}
             inputName="destination"
-            label="Destination"
+            label="Where to?"
             placeholder="Sydney, Paris, Tokyo…"
             defaultValue={destinationDefault}
           />
         </div>
 
-        <DateRangePopover
-          tripType="return"
-          startDate={startDate}
-          endDate={endDate}
-          onChange={({ start, end }) => {
-            setStartDate(start)
-            setEndDate(end)
-          }}
-          startLabel="Check-in"
-          endLabel="Check-out"
-        />
+        <div className="lg:col-span-2">
+          <DateRangePopover
+            tripType="return"
+            startDate={startDate}
+            endDate={endDate}
+            onChange={({ start, end }) => {
+              setStartDate(start)
+              setEndDate(end)
+            }}
+          />
+        </div>
 
-        <Popover className="relative">
-          <label className={labelClass}>Rooms &amp; guests</label>
+        <Popover className="relative lg:col-span-2">
           <PopoverButton
-            className={clsx(inputClass, 'flex items-center justify-between cursor-pointer')}
             type="button"
+            className="group relative flex w-full items-center gap-3 rounded-lg border border-neutral-300 bg-white px-4 py-2 text-left transition-colors hover:border-neutral-400 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500 dark:border-neutral-600 dark:bg-neutral-800 dark:hover:border-neutral-500"
           >
-            <span>
-              {rooms} room{rooms > 1 ? 's' : ''}, {guests} guest{guests > 1 ? 's' : ''}
-            </span>
-            <span className="text-neutral-400">▾</span>
+            <UserIcon className="size-5 shrink-0 text-neutral-500 dark:text-neutral-400" aria-hidden="true" />
+            <div className="min-w-0 flex-1">
+              <span className="block truncate text-[11px] font-medium leading-tight text-neutral-700 dark:text-neutral-300">
+                Travellers
+              </span>
+              <span className="block truncate text-base font-semibold text-neutral-900 dark:text-neutral-100">
+                {guests} {guests === 1 ? 'traveller' : 'travellers'}, {rooms}{' '}
+                {rooms === 1 ? 'room' : 'rooms'}
+              </span>
+            </div>
           </PopoverButton>
           <PopoverPanel
             anchor={{ to: 'bottom start', gap: 8 }}
-            className="z-50 w-72 rounded-lg border border-neutral-200 bg-white p-4 shadow-xl dark:border-neutral-700 dark:bg-neutral-900"
+            className="z-50 w-80 rounded-lg border border-neutral-200 bg-white p-4 shadow-xl dark:border-neutral-700 dark:bg-neutral-900"
           >
             <CountRow
               label="Rooms"
@@ -244,15 +264,12 @@ export const StaySearchForm: FC<Props> = ({
             />
           </PopoverPanel>
         </Popover>
-      </div>
 
-      {/* Footer */}
-      <div className="mt-5 flex flex-wrap items-center justify-end gap-3">
         <button
           type="submit"
-          className="rounded-lg bg-orange-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
+          className="inline-flex h-10 w-full items-center justify-center self-center rounded-full bg-blue-600 px-5 text-sm font-semibold !text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
         >
-          Search stays
+          Search
         </button>
       </div>
     </form>

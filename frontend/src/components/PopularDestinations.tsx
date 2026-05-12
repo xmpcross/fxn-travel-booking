@@ -81,8 +81,8 @@ export function PopularDestinations() {
 
   return (
     <section className="mt-10">
-      <h2 className="text-lg font-bold text-neutral-900 dark:text-neutral-100">
-        Popular destinations from {origin.city} {origin.iata}
+      <h2 className="text-2xl font-bold text-neutral-900 sm:text-3xl dark:text-neutral-100">
+        Popular destinations
       </h2>
       <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">
         These alluring destinations from{' '}

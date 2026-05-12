@@ -145,6 +145,14 @@ export default function Footer2() {
                   Advertise with Us
                 </a>
               </li>
+              <li>
+                <a
+                  href="/low-fare-tips"
+                  className="text-sm/6 font-light underline text-gray-600 hover:text-gray-900 dark:text-neutral-400"
+                >
+                  Low fare Tips
+                </a>
+              </li>
             </ul>
           </div>
           <div>
@@ -172,14 +180,6 @@ export default function Footer2() {
                   className="text-sm/6 font-light underline text-gray-600 hover:text-gray-900 dark:text-neutral-400"
                 >
                   Airlines
-                </a>
-              </li>
-              <li>
-                <a
-                  href="/low-fare-tips"
-                  className="text-sm/6 font-light underline text-gray-600 hover:text-gray-900 dark:text-neutral-400"
-                >
-                  Low fare Tips
                 </a>
               </li>
             </ul>

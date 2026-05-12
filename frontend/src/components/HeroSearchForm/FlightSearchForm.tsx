@@ -1,8 +1,7 @@
 'use client'
 
 import { Popover, PopoverButton, PopoverPanel } from '@headlessui/react'
-import { ArrowsRightLeftIcon } from '@heroicons/react/24/outline'
-import { AirplaneTakeOffIcon } from '@/components/icons/AirplaneTakeOffIcon'
+import { ArrowsRightLeftIcon, ChevronDownIcon, UserIcon } from '@heroicons/react/24/outline'
 import { BedroomIcon } from '@/components/icons/BedroomIcon'
 import clsx from 'clsx'
 import Form from 'next/form'
@@ -35,12 +34,26 @@ interface Props {
   initial?: FlightSearchFormInitial
   /** Called when the user clicks the Stays tab to switch verticals. */
   onSwitchToStays?: () => void
+  /**
+   * Visual treatment.
+   * - `hero` (default): full card with mode-icon row, used on landing pages.
+   * - `compact`: results-page treatment — trip-type tabs at top, no mode
+   *    icons, no surrounding card background.
+   */
+  variant?: 'hero' | 'compact'
 }
 
 const inputClass =
   'w-full rounded-lg border border-neutral-300 bg-white px-3 py-2.5 text-sm focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500 dark:border-neutral-600 dark:bg-neutral-800 dark:text-neutral-100'
 
 const labelClass = 'mb-1.5 block text-sm font-medium text-neutral-700 dark:text-neutral-300'
+
+const CABIN_LABELS: Record<CabinClass, string> = {
+  economy: 'Economy',
+  premium_economy: 'Premium economy',
+  business: 'Business',
+  first: 'First',
+}
 
 const CountRow: FC<{
   label: string
@@ -89,7 +102,8 @@ const fromIso = (s?: string): Date | null => {
   return new Date(y, m - 1, d)
 }
 
-export const FlightSearchForm: FC<Props> = ({ className, openInNewTab = true, initial, onSwitchToStays }) => {
+export const FlightSearchForm: FC<Props> = ({ className, openInNewTab = true, initial, onSwitchToStays, variant = 'hero' }) => {
+  const isCompact = variant === 'compact'
   const router = useRouter()
 
   const [tripType, setTripType] = useState<'return' | 'oneway'>(
@@ -219,25 +233,88 @@ export const FlightSearchForm: FC<Props> = ({ className, openInNewTab = true, in
     <Form
       action={handleSubmit}
       className={clsx(
-        'w-full rounded-2xl bg-neutral-50 p-6 sm:p-8 dark:bg-neutral-900',
+        'w-full',
+        !isCompact && 'rounded-2xl bg-neutral-50 p-6 sm:p-8 dark:bg-neutral-900',
         className
       )}
     >
-      {/* Top: mode icons + meta line */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            aria-pressed="true"
-            aria-label="Flights"
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-500 text-white shadow-sm"
-          >
-            <AirplaneTakeOffIcon className="size-5" />
-          </button>
+      {isCompact ? (
+        // Results-page header: trip-type tabs with blue underline on active.
+        // No mode-icon row, no surrounding card — matches the Expedia
+        // "search box at top of results" treatment.
+        <div className="mb-4 flex items-center gap-6 border-b border-neutral-200 dark:border-neutral-800">
+          {(
+            [
+              { id: 'return' as const, label: 'Return', disabled: false },
+              { id: 'oneway' as const, label: 'One-way', disabled: false },
+              { id: 'multicity' as const, label: 'Multi-city', disabled: true },
+            ]
+          ).map((tab) => {
+            const active = !tab.disabled && tripType === tab.id
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                disabled={tab.disabled}
+                onClick={() => {
+                  if (tab.disabled) return
+                  if (tab.id === 'return' || tab.id === 'oneway') setTripType(tab.id)
+                }}
+                className={clsx(
+                  'px-1 py-3 text-sm font-semibold transition-colors',
+                  active && 'border-b-2 border-blue-600 text-neutral-900 dark:text-neutral-100',
+                  !active && !tab.disabled && 'cursor-pointer text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-200',
+                  tab.disabled && 'cursor-not-allowed text-neutral-400 dark:text-neutral-600'
+                )}
+                title={tab.disabled ? 'Multi-city is coming soon' : undefined}
+              >
+                {tab.label}
+              </button>
+            )
+          })}
+        </div>
+      ) : (
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          {/* Trip-type dropdown on the left (replaces the Flights mode icon). */}
+          <Popover className="relative">
+            <PopoverButton className="inline-flex cursor-pointer items-center gap-1.5 text-base font-semibold text-neutral-900 hover:text-orange-600 focus:outline-none dark:text-neutral-100 dark:hover:text-orange-400">
+              {tripType === 'return' ? 'Return' : 'One-way'}
+              <ChevronDownIcon className="size-4" aria-hidden="true" />
+            </PopoverButton>
+            <PopoverPanel
+              anchor={{ to: 'bottom start', gap: 8 }}
+              className="z-50 w-40 rounded-lg border border-neutral-200 bg-white p-1 shadow-xl dark:border-neutral-700 dark:bg-neutral-900"
+            >
+              {({ close }) => (
+                <>
+                  {(['return', 'oneway'] as const).map((opt) => (
+                    <button
+                      key={opt}
+                      type="button"
+                      onClick={() => {
+                        setTripType(opt)
+                        close()
+                      }}
+                      className={clsx(
+                        'block w-full cursor-pointer rounded-md px-3 py-2 text-left text-sm transition-colors',
+                        tripType === opt
+                          ? 'bg-orange-50 font-semibold text-orange-700 dark:bg-orange-950/40 dark:text-orange-300'
+                          : 'text-neutral-700 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800'
+                      )}
+                    >
+                      {opt === 'return' ? 'Return' : 'One-way'}
+                    </button>
+                  ))}
+                </>
+              )}
+            </PopoverPanel>
+          </Popover>
+
+          {/* Stays toggle on the right (only when a switch handler is provided). */}
           {onSwitchToStays ? (
             <button
               type="button"
-              aria-label="Stays"
+              aria-label="Switch to Stays"
               onClick={onSwitchToStays}
               className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-neutral-300 text-neutral-500 hover:border-orange-500 hover:text-orange-500 dark:border-neutral-700"
             >
@@ -245,110 +322,76 @@ export const FlightSearchForm: FC<Props> = ({ className, openInNewTab = true, in
             </button>
           ) : null}
         </div>
+      )}
 
-        <div className="flex flex-wrap items-center gap-3">
-          {/* Prominent trip-type segmented control */}
-          <div
-            role="radiogroup"
-            aria-label="Trip type"
-            className="inline-flex rounded-full border border-neutral-300 bg-white p-1 dark:border-neutral-600 dark:bg-neutral-800"
-          >
-            <button
-              type="button"
-              role="radio"
-              aria-checked={tripType === 'return'}
-              onClick={() => setTripType('return')}
-              className={clsx(
-                'cursor-pointer rounded-full px-4 py-1.5 text-sm font-semibold transition-colors',
-                tripType === 'return'
-                  ? 'bg-orange-500 text-white shadow-sm'
-                  : 'text-neutral-700 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-neutral-100'
-              )}
-            >
-              Return
-            </button>
-            <button
-              type="button"
-              role="radio"
-              aria-checked={tripType === 'oneway'}
-              onClick={() => setTripType('oneway')}
-              className={clsx(
-                'cursor-pointer rounded-full px-4 py-1.5 text-sm font-semibold transition-colors',
-                tripType === 'oneway'
-                  ? 'bg-orange-500 text-white shadow-sm'
-                  : 'text-neutral-700 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-neutral-100'
-              )}
-            >
-              One-way
-            </button>
-          </div>
-
-        </div>
-      </div>
-
-      {/* Field grid */}
-      <div
-        className={clsx(
-          'mt-5 grid gap-3 sm:grid-cols-2',
-          tripType === 'return' ? 'lg:grid-cols-6' : 'lg:grid-cols-5'
-        )}
-      >
+      {/* Field grid — 10 cols on lg: From/To gets 5 (half the row), Dates
+          and Travellers each get 2, Search gets 1 (intentionally compact). */}
+      <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-10">
         {/* From + To live in a single grid cell that spans 2 columns so we
             can collapse the gap between them and float a Swap button at
             their boundary. */}
-        <div className="relative grid grid-cols-2 gap-3 sm:col-span-2 lg:col-span-2">
+        <div className="relative grid grid-cols-2 gap-3 sm:col-span-2 lg:col-span-5">
           <SimpleAirportInput
             /* Re-mount once when geolocation resolves so the dynamic
                placeholder actually replaces the initial "Perth (PER)" hint,
                and once per Swap so the new defaultValue takes effect. */
             key={`from-${swapCount}-${originPlaceholder}`}
             inputName="flying-from-location"
-            label="From"
+            label="Leaving from"
             placeholder={originPlaceholder}
             defaultValue={fromDefault}
           />
           <SimpleAirportInput
             key={`to-${swapCount}`}
             inputName="flying-to-location"
-            label="To"
-            placeholder="Singapore (SIN)"
+            label="Going to"
+            placeholder="Going to"
             defaultValue={toDefault}
           />
           <button
             type="button"
             onClick={handleSwap}
             aria-label="Swap From and To"
-            // bottom-anchored so the button vertically centres on the input
-            // rectangles rather than on the (label + input) full container,
-            // which left the icon sitting visibly above the field row.
-            className="absolute bottom-1.5 left-1/2 z-10 inline-flex size-8 -translate-x-1/2 items-center justify-center rounded-full border border-neutral-200 bg-white text-neutral-600 shadow-sm transition-colors hover:border-orange-400 hover:text-orange-600 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-300"
+            // Vertically centred on the new pill field (which no longer has
+            // an external label above the input).
+            className="absolute left-1/2 top-1/2 z-10 inline-flex size-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-neutral-200 bg-white text-neutral-600 shadow-sm transition-colors hover:border-orange-400 hover:text-orange-600 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-300"
           >
             <ArrowsRightLeftIcon className="size-4" />
           </button>
         </div>
 
-        <DateRangePopover
-          tripType={tripType}
-          startDate={startDate}
-          endDate={endDate}
-          onChange={({ start, end }) => {
-            setStartDate(start)
-            setEndDate(end)
-          }}
-        />
+        <div className="lg:col-span-2">
+          <DateRangePopover
+            tripType={tripType}
+            startDate={startDate}
+            endDate={endDate}
+            onChange={({ start, end }) => {
+              setStartDate(start)
+              setEndDate(end)
+            }}
+          />
+        </div>
 
-        <Popover className="relative">
-          <label className={labelClass}>Travellers</label>
-          <PopoverButton className={clsx(inputClass, 'flex items-center justify-between cursor-pointer')} type="button">
-            <span>
-              {adults + children + infants}{' '}
-              {adults + children + infants === 1 ? 'traveller' : 'travellers'}
-            </span>
-            <span className="text-neutral-400">▾</span>
+        <Popover className="relative lg:col-span-2">
+          <PopoverButton
+            type="button"
+            className="group relative flex w-full items-center gap-3 rounded-lg border border-neutral-300 bg-white px-4 py-2 text-left transition-colors hover:border-neutral-400 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500 dark:border-neutral-600 dark:bg-neutral-800 dark:hover:border-neutral-500"
+          >
+            <UserIcon className="size-5 shrink-0 text-neutral-500 dark:text-neutral-400" aria-hidden="true" />
+            <div className="min-w-0 flex-1">
+              <span className="block truncate text-[11px] font-medium leading-tight text-neutral-700 dark:text-neutral-300">
+                Travellers, Cabin class
+              </span>
+              <span className="block truncate text-base font-semibold text-neutral-900 dark:text-neutral-100">
+                {adults + children + infants}{' '}
+                {adults + children + infants === 1 ? 'traveller' : 'travellers'}
+                , {CABIN_LABELS[cabin]}
+              </span>
+            </div>
           </PopoverButton>
           <PopoverPanel
             anchor={{ to: 'bottom start', gap: 8 }}
-            className="z-50 w-72 rounded-lg border border-neutral-200 bg-white p-4 shadow-xl dark:border-neutral-700 dark:bg-neutral-900"
+            className="z-50 w-80 rounded-lg border border-neutral-200 bg-white p-4 shadow-xl dark:border-neutral-700 dark:bg-neutral-900"
           >
             <CountRow
               label="Adults"
@@ -377,31 +420,39 @@ export const FlightSearchForm: FC<Props> = ({ className, openInNewTab = true, in
               min={0}
               max={adults}
             />
+            <div className="mt-3 border-t border-neutral-200 pt-3 dark:border-neutral-700">
+              <div className="mb-2 text-sm font-semibold text-neutral-800 dark:text-neutral-200">
+                Cabin
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                {(Object.keys(CABIN_LABELS) as CabinClass[]).map((opt) => (
+                  <button
+                    key={opt}
+                    type="button"
+                    onClick={() => setCabin(opt)}
+                    className={clsx(
+                      'cursor-pointer rounded-md border px-3 py-2 text-left text-sm transition-colors',
+                      cabin === opt
+                        ? 'border-orange-500 bg-orange-50 font-semibold text-orange-700 dark:bg-orange-950/40 dark:text-orange-300'
+                        : 'border-neutral-200 text-neutral-700 hover:border-neutral-300 dark:border-neutral-700 dark:text-neutral-300'
+                    )}
+                  >
+                    {CABIN_LABELS[opt]}
+                  </button>
+                ))}
+              </div>
+            </div>
           </PopoverPanel>
         </Popover>
 
-        <div>
-          <label className={labelClass}>Cabin</label>
-          <select
-            value={cabin}
-            onChange={(e) => setCabin(e.target.value as CabinClass)}
-            className={inputClass}
-          >
-            <option value="economy">Economy</option>
-            <option value="premium_economy">Premium economy</option>
-            <option value="business">Business</option>
-            <option value="first">First</option>
-          </select>
-        </div>
-      </div>
-
-      {/* Footer */}
-      <div className="mt-5 flex flex-wrap items-center justify-end gap-3">
+        {/* Search button — full-height pill that matches the neighbouring
+            field cards (no external label spacer, since the new pills carry
+            their labels inside). */}
         <button
           type="submit"
-          className="rounded-lg bg-orange-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
+          className="inline-flex h-10 w-full items-center justify-center self-center rounded-full bg-blue-600 px-5 text-sm font-semibold !text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
         >
-          Search flights
+          Search
         </button>
       </div>
     </Form>

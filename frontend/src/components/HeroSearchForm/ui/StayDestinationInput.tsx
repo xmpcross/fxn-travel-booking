@@ -1,7 +1,7 @@
 'use client'
 
 import _ from 'lodash'
-import { XMarkIcon } from '@heroicons/react/24/outline'
+import { MapPinIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import { FC, useCallback, useEffect, useRef, useState } from 'react'
 
 type Place = {
@@ -132,21 +132,35 @@ export const StayDestinationInput: FC<Props> = ({
 
   return (
     <div className="relative" ref={containerRef}>
-      <label className="mb-1.5 block text-sm font-medium text-neutral-700 dark:text-neutral-300">
-        {label}
-      </label>
-      <div className="relative">
-        <input
-          ref={inputRef}
-          type="text"
-          value={displayValue}
-          onChange={onChange}
-          onFocus={() => displayValue.trim().length >= 2 && setOpen(true)}
-          placeholder={placeholder}
-          autoComplete="off"
-          spellCheck={false}
-          className="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2.5 pr-9 text-sm font-medium focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500 dark:border-neutral-600 dark:bg-neutral-800 dark:text-neutral-100"
-        />
+      <div className="relative flex items-center gap-3 rounded-lg border border-neutral-300 bg-white px-4 py-2 focus-within:border-orange-500 focus-within:ring-1 focus-within:ring-orange-500 dark:border-neutral-600 dark:bg-neutral-800">
+        <MapPinIcon className="size-5 shrink-0 text-neutral-500 dark:text-neutral-400" aria-hidden="true" />
+        <div className="min-w-0 flex-1">
+          {/* Reserve vertical space for the label row even when empty so the
+              pill height matches sibling fields (Dates / Travellers). When
+              empty the label is invisible but still occupies the row. */}
+          <label
+            className={
+              displayValue
+                ? 'block text-[11px] font-medium leading-tight text-neutral-700 dark:text-neutral-300'
+                : 'invisible block text-[11px] font-medium leading-tight'
+            }
+            aria-hidden={!displayValue}
+          >
+            {label}
+          </label>
+          <input
+            ref={inputRef}
+            type="text"
+            value={displayValue}
+            onChange={onChange}
+            onFocus={() => displayValue.trim().length >= 2 && setOpen(true)}
+            placeholder={displayValue ? '' : label}
+            aria-label={label}
+            autoComplete="off"
+            spellCheck={false}
+            className="w-full border-none bg-transparent p-0 pr-6 text-base font-semibold text-neutral-900 placeholder:font-normal placeholder:text-neutral-500 focus:outline-none focus:ring-0 dark:text-neutral-100 dark:placeholder:text-neutral-400"
+          />
+        </div>
         {displayValue && (
           <button
             type="button"

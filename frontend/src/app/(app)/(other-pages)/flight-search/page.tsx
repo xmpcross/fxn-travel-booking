@@ -2,6 +2,8 @@
 
 import {
   ChevronDownIcon,
+  MoonIcon,
+  SunIcon,
 } from '@heroicons/react/24/outline'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useMemo, useState } from 'react'
@@ -52,7 +54,7 @@ type FlightSearchResponse = {
 }
 
 type SortMode = 'best' | 'cheapest' | 'fastest'
-type StopsFilter = 'any' | 'direct' | 'one_stop' | 'two_stops'
+type StopsBucket = 0 | 1 | 2 // 0 = direct, 1 = 1 stop, 2 = 2+ stops
 type TimeBucket = 'early' | 'morning' | 'afternoon' | 'evening'
 
 const SORT_LABELS: Record<SortMode, string> = {
@@ -62,10 +64,10 @@ const SORT_LABELS: Record<SortMode, string> = {
 }
 
 const TIME_BUCKETS: { id: TimeBucket; label: string; range: string; from: number; to: number }[] = [
-  { id: 'early', label: 'Early morning', range: '00:00–06:00', from: 0, to: 6 },
-  { id: 'morning', label: 'Morning', range: '06:00–12:00', from: 6, to: 12 },
-  { id: 'afternoon', label: 'Afternoon', range: '12:00–18:00', from: 12, to: 18 },
-  { id: 'evening', label: 'Evening', range: '18:00–24:00', from: 18, to: 24 },
+  { id: 'early', label: 'Early morning', range: '12:00 am - 04:59 am', from: 0, to: 5 },
+  { id: 'morning', label: 'Morning', range: '5:00 am - 11:59 am', from: 5, to: 12 },
+  { id: 'afternoon', label: 'Afternoon', range: '12:00 pm - 5:59 pm', from: 12, to: 18 },
+  { id: 'evening', label: 'Evening', range: '6:00 pm - 11:59 pm', from: 18, to: 24 },
 ]
 
 type NormalizedOffer = {
@@ -222,7 +224,9 @@ function FlightsContent() {
       .map((s) => s.trim().toUpperCase())
       .filter(Boolean)
   })
-  const [stopsFilter, setStopsFilter] = useState<StopsFilter>('any')
+  const [selectedStops, setSelectedStops] = useState<StopsBucket[]>([])
+  const [selectedArrivalAirports, setSelectedArrivalAirports] = useState<string[]>([])
+  const [selectedStopoverAirports, setSelectedStopoverAirports] = useState<string[]>([])
   const [refundableOnly, setRefundableOnly] = useState(false)
   const [changeableOnly, setChangeableOnly] = useState(false)
   const [allowOvernightStopovers, setAllowOvernightStopovers] = useState(true)
@@ -350,11 +354,13 @@ function FlightsContent() {
   )
 
   // Group offers by airline IATA so each filter row has a stable id, a
-  // friendly name, a logo, and a count. Sorted alphabetically by name.
+  // friendly name, a logo, count, and a "From" price (cheapest offer in
+  // that group). Sorted by count descending so most-served airlines come
+  // first.
   const airlineOptions = useMemo(() => {
     const byIata = new Map<
       string,
-      { iata: string; name: string; logo: string | null; count: number }
+      { iata: string; name: string; logo: string | null; count: number; fromPrice: number }
     >()
     for (const o of normalizedOffers) {
       const key = (o.airlineIata ?? o.airline).toUpperCase()
@@ -362,17 +368,108 @@ function FlightsContent() {
       if (existing) {
         existing.count += 1
         if (!existing.logo && o.airlineLogo) existing.logo = o.airlineLogo
+        if (o.amount < existing.fromPrice) existing.fromPrice = o.amount
       } else {
         byIata.set(key, {
           iata: key,
           name: o.airline,
           logo: o.airlineLogo,
           count: 1,
+          fromPrice: o.amount,
         })
       }
     }
-    return Array.from(byIata.values()).sort((a, b) => a.name.localeCompare(b.name))
+    return Array.from(byIata.values()).sort((a, b) => b.count - a.count)
   }, [normalizedOffers])
+
+  // Stops buckets: direct (0), 1 stop, 2+ stops — each with count + From.
+  const stopsOptions = useMemo(() => {
+    const counts = new Map<StopsBucket, { count: number; fromPrice: number }>()
+    for (const o of normalizedOffers) {
+      const bucket: StopsBucket = o.stops === 0 ? 0 : o.stops === 1 ? 1 : 2
+      const cur = counts.get(bucket)
+      if (cur) {
+        cur.count += 1
+        if (o.amount < cur.fromPrice) cur.fromPrice = o.amount
+      } else {
+        counts.set(bucket, { count: 1, fromPrice: o.amount })
+      }
+    }
+    return ([0, 1, 2] as StopsBucket[])
+      .filter((s) => counts.has(s))
+      .map((s) => ({
+        id: s,
+        label: s === 0 ? 'Direct' : s === 1 ? '1 stop' : '2+ stops',
+        count: counts.get(s)!.count,
+        fromPrice: counts.get(s)!.fromPrice,
+      }))
+  }, [normalizedOffers])
+
+  // The arrival airport is the last segment's destination on the outbound
+  // slice (e.g. BKK vs. DMK when searching "Bangkok").
+  const arrivalAirportOptions = useMemo(() => {
+    const byIata = new Map<
+      string,
+      { iata: string; name: string; count: number; fromPrice: number }
+    >()
+    for (const o of normalizedOffers) {
+      const segs = o.offer.slices?.[0]?.segments ?? []
+      const last = segs[segs.length - 1]
+      const iata = last?.destination?.iata_code
+      if (!iata) continue
+      const name = last?.destination?.city_name ?? iata
+      const cur = byIata.get(iata)
+      if (cur) {
+        cur.count += 1
+        if (o.amount < cur.fromPrice) cur.fromPrice = o.amount
+      } else {
+        byIata.set(iata, { iata, name, count: 1, fromPrice: o.amount })
+      }
+    }
+    return Array.from(byIata.values()).sort((a, b) => b.count - a.count)
+  }, [normalizedOffers])
+
+  // Stopover airports = destination of every segment except the last on the
+  // outbound slice (the layover points).
+  const stopoverAirportOptions = useMemo(() => {
+    const byIata = new Map<
+      string,
+      { iata: string; name: string; count: number; fromPrice: number }
+    >()
+    for (const o of normalizedOffers) {
+      const segs = o.offer.slices?.[0]?.segments ?? []
+      for (let i = 0; i < segs.length - 1; i++) {
+        const iata = segs[i]?.destination?.iata_code
+        if (!iata) continue
+        const name = segs[i]?.destination?.city_name ?? iata
+        const cur = byIata.get(iata)
+        if (cur) {
+          cur.count += 1
+          if (o.amount < cur.fromPrice) cur.fromPrice = o.amount
+        } else {
+          byIata.set(iata, { iata, name, count: 1, fromPrice: o.amount })
+        }
+      }
+    }
+    return Array.from(byIata.values()).sort((a, b) => b.count - a.count)
+  }, [normalizedOffers])
+
+  // City names for the "Departure time in {city}" / "Arrival time in {city}"
+  // section headings. Falls back to the IATA code if Duffel didn't include
+  // a city_name on the segment.
+  const originCityName = useMemo(
+    () =>
+      normalizedOffers[0]?.offer.slices?.[0]?.segments?.[0]?.origin?.city_name ??
+      params.get('origin') ??
+      '',
+    [normalizedOffers, params],
+  )
+  const destinationCityName = useMemo(() => {
+    const segs = normalizedOffers[0]?.offer.slices?.[0]?.segments ?? []
+    return (
+      segs[segs.length - 1]?.destination?.city_name ?? params.get('destination') ?? ''
+    )
+  }, [normalizedOffers, params])
 
   const highestPrice = useMemo(
     () =>
@@ -401,7 +498,9 @@ function FlightsContent() {
   }, [
     selectedAirlines,
     sortMode,
-    stopsFilter,
+    selectedStops,
+    selectedArrivalAirports,
+    selectedStopoverAirports,
     maxPrice,
     departBuckets,
     arriveBuckets,
@@ -421,11 +520,8 @@ function FlightsContent() {
         selectedAirlines.length === 0 || selectedAirlines.includes(offerKey)
       const priceMatch = offer.amount <= activeMaxPrice
       const durationMatch = offer.durationMinutes <= activeMaxDuration
-      const stopsMatch =
-        stopsFilter === 'any' ||
-        (stopsFilter === 'direct' && offer.stops === 0) ||
-        (stopsFilter === 'one_stop' && offer.stops <= 1) ||
-        (stopsFilter === 'two_stops' && offer.stops <= 2)
+      const offerBucket: StopsBucket = offer.stops === 0 ? 0 : offer.stops === 1 ? 1 : 2
+      const stopsMatch = selectedStops.length === 0 || selectedStops.includes(offerBucket)
       const refundableMatch = !refundableOnly || offer.refundable
       const changeableMatch = !changeableOnly || offer.changeable
       const overnightMatch = allowOvernightStopovers || !offer.hasOvernightLayover
@@ -437,6 +533,15 @@ function FlightsContent() {
       const departTimeMatch = depHour < 0 || inAnyBucket(depHour, departBuckets)
       const arriveTimeMatch = arrHour < 0 || inAnyBucket(arrHour, arriveBuckets)
 
+      const arrIata = segs[segs.length - 1]?.destination?.iata_code ?? ''
+      const arrivalAirportMatch =
+        selectedArrivalAirports.length === 0 || selectedArrivalAirports.includes(arrIata)
+
+      const layovers = segs.slice(0, -1).map((s) => s.destination?.iata_code).filter(Boolean) as string[]
+      const stopoverAirportMatch =
+        selectedStopoverAirports.length === 0 ||
+        layovers.some((iata) => selectedStopoverAirports.includes(iata))
+
       return (
         airlineMatch &&
         priceMatch &&
@@ -446,7 +551,9 @@ function FlightsContent() {
         changeableMatch &&
         overnightMatch &&
         departTimeMatch &&
-        arriveTimeMatch
+        arriveTimeMatch &&
+        arrivalAirportMatch &&
+        stopoverAirportMatch
       )
     })
 
@@ -463,7 +570,9 @@ function FlightsContent() {
     normalizedOffers,
     selectedAirlines,
     sortMode,
-    stopsFilter,
+    selectedStops,
+    selectedArrivalAirports,
+    selectedStopoverAirports,
     departBuckets,
     arriveBuckets,
     refundableOnly,
@@ -518,26 +627,12 @@ function FlightsContent() {
   return (
     <main className="bg-neutral-50 pb-16 dark:bg-neutral-950">
       <div className="container py-6">
-        <nav className="mb-4 text-xs text-neutral-500">
-          <a href="/" className="hover:text-orange-600">
-            Home
-          </a>{' '}
-          ·{' '}
-          <a href="/flights" className="hover:text-orange-600">
-            Flights
-          </a>
-          {originLabel && destinationLabel ? (
-            <>
-              {' '}
-              · {originLabel} → {destinationLabel}
-            </>
-          ) : null}
-        </nav>
-
-        {/* Embedded search form */}
-        <div className="mb-6 rounded-2xl bg-white p-2 shadow-sm dark:bg-neutral-900">
+        {/* Embedded search form — compact variant used on the results page:
+            trip-type tabs at top, no mode icons, no wrapping card. */}
+        <div className="mb-6">
           <FlightSearchForm
             openInNewTab={false}
+            variant="compact"
             initial={{
               origin: params.get('origin') ?? undefined,
               destination: params.get('destination') ?? undefined,
@@ -568,100 +663,40 @@ function FlightsContent() {
         ) : null}
 
         <div className="grid gap-6 lg:grid-cols-[280px_1fr_260px]">
-          {/* Sidebar */}
-          <aside className="space-y-5">
-            <SidebarSection title="Stops">
-              <RadioList
-                name="stops-filter"
-                value={stopsFilter}
-                onChange={setStopsFilter}
-                options={[
-                  { value: 'any', label: 'Any' },
-                  { value: 'direct', label: 'Direct' },
-                  { value: 'one_stop', label: 'Up to 1 stop' },
-                  { value: 'two_stops', label: 'Up to 2 stops' },
-                ]}
-              />
-              <div className="mt-1 border-t border-neutral-200 pt-2 dark:border-neutral-800">
-                <CheckboxRow
-                  label="Allow overnight stopovers"
-                  checked={allowOvernightStopovers}
-                  onChange={setAllowOvernightStopovers}
-                />
-              </div>
-            </SidebarSection>
+          {/* Sidebar — Expedia-style filter rail. Each priced filter row has a
+              checkbox + label + count + "From" price aligned right. */}
+          <aside className="space-y-6">
+            <h2 className="text-lg font-bold text-neutral-900 dark:text-neutral-100">
+              Filter by
+            </h2>
 
-            <SidebarSection title="Flexibility">
-              <CheckboxRow
-                label="Refundable only"
-                checked={refundableOnly}
-                onChange={setRefundableOnly}
-              />
-              <CheckboxRow
-                label="Changeable only"
-                checked={changeableOnly}
-                onChange={setChangeableOnly}
-              />
-            </SidebarSection>
-
-            {highestPrice > 0 ? (
-              <SidebarSection title="Max price">
-                <input
-                  type="range"
-                  min={0}
-                  max={highestPrice || 1}
-                  value={maxPrice ?? highestPrice}
-                  onChange={(e) => setMaxPrice(Number(e.target.value))}
-                  className="w-full accent-orange-500"
-                />
-                <p className="mt-1 text-xs text-neutral-500">
-                  Up to {format(maxPrice ?? highestPrice, currency)}
-                </p>
+            {stopsOptions.length > 0 ? (
+              <SidebarSection title="Stops" rightHeader="From">
+                {stopsOptions.map((opt) => (
+                  <PricedCheckboxRow
+                    key={`stops-${opt.id}`}
+                    label={`${opt.label} (${opt.count})`}
+                    checked={selectedStops.includes(opt.id)}
+                    onChange={() =>
+                      setSelectedStops((cur) =>
+                        cur.includes(opt.id) ? cur.filter((s) => s !== opt.id) : [...cur, opt.id]
+                      )
+                    }
+                    price={format(opt.fromPrice, currency)}
+                  />
+                ))}
+                <div className="mt-2 border-t border-neutral-200 pt-2 dark:border-neutral-800">
+                  <CheckboxRow
+                    label="Allow overnight stopovers"
+                    checked={allowOvernightStopovers}
+                    onChange={setAllowOvernightStopovers}
+                  />
+                </div>
               </SidebarSection>
             ) : null}
-
-            {highestDuration > 0 ? (
-              <SidebarSection title="Max flight duration">
-                <input
-                  type="range"
-                  min={Math.max(60, Math.floor(highestDuration / 4))}
-                  max={highestDuration}
-                  step={15}
-                  value={maxDurationMin ?? highestDuration}
-                  onChange={(e) => setMaxDurationMin(Number(e.target.value))}
-                  className="w-full accent-orange-500"
-                />
-                <p className="mt-1 text-xs text-neutral-500">
-                  Up to {Math.floor((maxDurationMin ?? highestDuration) / 60)}h{' '}
-                  {(maxDurationMin ?? highestDuration) % 60}m
-                </p>
-              </SidebarSection>
-            ) : null}
-
-            <SidebarSection title="Departure time">
-              {TIME_BUCKETS.map((b) => (
-                <CheckboxRow
-                  key={`dep-${b.id}`}
-                  label={`${b.label} (${b.range})`}
-                  checked={departBuckets.includes(b.id)}
-                  onChange={() => toggleBucket(setDepartBuckets, b.id)}
-                />
-              ))}
-            </SidebarSection>
-
-            <SidebarSection title="Arrival time">
-              {TIME_BUCKETS.map((b) => (
-                <CheckboxRow
-                  key={`arr-${b.id}`}
-                  label={`${b.label} (${b.range})`}
-                  checked={arriveBuckets.includes(b.id)}
-                  onChange={() => toggleBucket(setArriveBuckets, b.id)}
-                />
-              ))}
-            </SidebarSection>
 
             {airlineOptions.length > 0 ? (
-              <SidebarSection title="Airlines">
+              <SidebarSection title="Airlines" rightHeader="From">
                 {selectedAirlines.length > 0 ? (
                   <button
                     type="button"
@@ -699,9 +734,118 @@ function FlightsContent() {
                         {a.iata.slice(0, 2)}
                       </span>
                     )}
-                    <span className="flex-1 truncate">{a.name}</span>
-                    <span className="text-xs text-neutral-500">{a.count}</span>
+                    <span className="flex-1 truncate">
+                      {a.name} <span className="text-neutral-500">({a.count})</span>
+                    </span>
+                    <span className="shrink-0 text-xs text-neutral-700 dark:text-neutral-300">
+                      {format(a.fromPrice, currency)}
+                    </span>
                   </label>
+                ))}
+              </SidebarSection>
+            ) : null}
+
+            <SidebarSection title="Flexibility">
+              <CheckboxRow
+                label="Refundable only"
+                checked={refundableOnly}
+                onChange={setRefundableOnly}
+              />
+              <CheckboxRow
+                label="Changeable only"
+                checked={changeableOnly}
+                onChange={setChangeableOnly}
+              />
+            </SidebarSection>
+
+            {highestPrice > 0 ? (
+              <SidebarSection title="Max price">
+                <input
+                  type="range"
+                  min={0}
+                  max={highestPrice || 1}
+                  value={maxPrice ?? highestPrice}
+                  onChange={(e) => setMaxPrice(Number(e.target.value))}
+                  className="w-full accent-orange-500"
+                />
+                <p className="mt-1 text-xs text-neutral-500">
+                  Up to {format(maxPrice ?? highestPrice, currency)}
+                </p>
+              </SidebarSection>
+            ) : null}
+
+            {highestDuration > 0 ? (
+              <SidebarSection title="Total travel time">
+                <input
+                  type="range"
+                  min={Math.max(60, Math.floor(highestDuration / 4))}
+                  max={highestDuration}
+                  step={15}
+                  value={maxDurationMin ?? highestDuration}
+                  onChange={(e) => setMaxDurationMin(Number(e.target.value))}
+                  className="w-full accent-orange-500"
+                />
+                <p className="mt-1 text-xs text-neutral-500">
+                  Under {Math.floor((maxDurationMin ?? highestDuration) / 60)}h{' '}
+                  {(maxDurationMin ?? highestDuration) % 60}m
+                </p>
+              </SidebarSection>
+            ) : null}
+
+            <SidebarSection
+              title={`Departure time${originCityName ? ` in ${originCityName}` : ''}`}
+            >
+              <TimeBucketGrid
+                selected={departBuckets}
+                onToggle={(id) => toggleBucket(setDepartBuckets, id)}
+              />
+            </SidebarSection>
+
+            <SidebarSection
+              title={`Arrival time${destinationCityName ? ` in ${destinationCityName}` : ''}`}
+            >
+              <TimeBucketGrid
+                selected={arriveBuckets}
+                onToggle={(id) => toggleBucket(setArriveBuckets, id)}
+              />
+            </SidebarSection>
+
+            {arrivalAirportOptions.length > 1 ? (
+              <SidebarSection title="Arrival airports" rightHeader="From">
+                {arrivalAirportOptions.map((a) => (
+                  <PricedCheckboxRow
+                    key={`arr-airport-${a.iata}`}
+                    label={`${a.iata} (${a.name}) (${a.count})`}
+                    checked={selectedArrivalAirports.includes(a.iata)}
+                    onChange={() =>
+                      setSelectedArrivalAirports((cur) =>
+                        cur.includes(a.iata)
+                          ? cur.filter((x) => x !== a.iata)
+                          : [...cur, a.iata]
+                      )
+                    }
+                    price={format(a.fromPrice, currency)}
+                  />
+                ))}
+              </SidebarSection>
+            ) : null}
+
+            {stopoverAirportOptions.length > 0 ? (
+              <SidebarSection title="Stopover airport" rightHeader="From">
+                {stopoverAirportOptions.map((a) => (
+                  <PricedCheckboxRow
+                    key={`stopover-${a.iata}`}
+                    label={`${a.iata} (${a.name}) (${a.count})`}
+                    checked={selectedStopoverAirports.includes(a.iata)}
+                    onChange={() =>
+                      setSelectedStopoverAirports((cur) =>
+                        cur.includes(a.iata)
+                          ? cur.filter((x) => x !== a.iata)
+                          : [...cur, a.iata]
+                      )
+                    }
+                    price={format(a.fromPrice, currency)}
+                  />
                 ))}
               </SidebarSection>
             ) : null}
@@ -822,18 +966,101 @@ function FlightsContent() {
 
 function SidebarSection({
   title,
+  rightHeader,
   children,
 }: {
   title?: string
+  /** Right-aligned column header text (e.g. "From") — matches the Expedia
+   *  filter rail layout where priced rows have a price column. */
+  rightHeader?: string
   children: React.ReactNode
 }) {
   return (
     <div className="rounded-2xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
-      {title ? (
-        <h3 className="mb-3 text-sm font-bold text-neutral-900 dark:text-neutral-100">{title}</h3>
+      {title || rightHeader ? (
+        <div className="mb-3 flex items-baseline justify-between">
+          {title ? (
+            <h3 className="text-sm font-bold text-neutral-900 dark:text-neutral-100">{title}</h3>
+          ) : (
+            <span />
+          )}
+          {rightHeader ? (
+            <span className="text-xs font-medium text-neutral-500">{rightHeader}</span>
+          ) : null}
+        </div>
       ) : null}
       <div className="space-y-2">{children}</div>
     </div>
+  )
+}
+
+function TimeBucketGrid({
+  selected,
+  onToggle,
+}: {
+  selected: TimeBucket[]
+  onToggle: (id: TimeBucket) => void
+}) {
+  // Evening uses a crescent moon; the daytime buckets share a sun. The
+  // label + range below the icon distinguish the three sun buckets.
+  const iconFor = (id: TimeBucket) =>
+    id === 'evening' ? (
+      <MoonIcon className="size-6" aria-hidden="true" />
+    ) : (
+      <SunIcon className="size-6" aria-hidden="true" />
+    )
+
+  return (
+    <div className="grid grid-cols-2 gap-2">
+      {TIME_BUCKETS.map((b) => {
+        const isOn = selected.includes(b.id)
+        return (
+          <button
+            key={b.id}
+            type="button"
+            onClick={() => onToggle(b.id)}
+            aria-pressed={isOn}
+            className={clsx(
+              'flex flex-col items-center gap-1.5 rounded-md border px-2 py-3 text-center transition-colors',
+              isOn
+                ? 'border-orange-500 bg-orange-50 text-orange-700 dark:bg-orange-950/40 dark:text-orange-300'
+                : 'border-neutral-200 text-neutral-700 hover:border-neutral-300 dark:border-neutral-700 dark:text-neutral-300'
+            )}
+          >
+            {iconFor(b.id)}
+            <span className="text-xs font-semibold">{b.label}</span>
+            <span className="text-[10px] leading-tight text-neutral-500">
+              ({b.range})
+            </span>
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+function PricedCheckboxRow({
+  label,
+  checked,
+  onChange,
+  price,
+}: {
+  label: string
+  checked: boolean
+  onChange: () => void
+  price: string
+}) {
+  return (
+    <label className="flex cursor-pointer items-center gap-2.5 py-1 text-sm text-neutral-700 dark:text-neutral-300">
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={onChange}
+        className="size-4 shrink-0 rounded border-neutral-300 text-orange-500 focus:ring-orange-500 dark:border-neutral-600 dark:bg-neutral-800"
+      />
+      <span className="flex-1 truncate">{label}</span>
+      <span className="shrink-0 text-xs text-neutral-700 dark:text-neutral-300">{price}</span>
+    </label>
   )
 }
 

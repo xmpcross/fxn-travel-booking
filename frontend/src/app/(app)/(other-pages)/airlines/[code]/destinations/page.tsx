@@ -4,7 +4,10 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
 import { POPULAR_DESTINATIONS } from '@/data/popularDestinations'
+import { getAirlineSupplement } from '@/data/airlineSupplement'
 import { findAirlineByCode } from '@/lib/duffel'
+
+const FALLBACK_ORIGIN = { iata: 'LHR', name: 'London Heathrow' }
 
 export const revalidate = 86_400
 
@@ -22,10 +25,6 @@ export async function generateMetadata({
   }
 }
 
-function isoDate(d: Date): string {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-}
-
 export default async function AirlineDestinationsPage({
   params,
 }: {
@@ -36,26 +35,18 @@ export default async function AirlineDestinationsPage({
   if (!airline) notFound()
   const iata = airline.iata_code
 
-  // Default outbound 30 days out, return 7 days later.
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  const dep = new Date(today)
-  dep.setDate(today.getDate() + 30)
-  const ret = new Date(today)
-  ret.setDate(today.getDate() + 37)
-  const dates = { departureDate: isoDate(dep), returnDate: isoDate(ret) }
+  // Origin defaults to the airline's primary hub so the description text
+  // (and the per-route pages that tiles link to) tell a coherent story.
+  // Falls back to LHR for airlines without curated supplement data.
+  const supplement = getAirlineSupplement(iata)
+  const origin = supplement?.hubs?.[0] ?? FALLBACK_ORIGIN
 
-  const buildHref = (destIata: string) => {
-    const qs = new URLSearchParams({
-      destination: destIata,
-      departureDate: dates.departureDate,
-      returnDate: dates.returnDate,
-      adults: '1',
-      cabinClass: 'economy',
-    })
-    if (iata) qs.set('airline', iata)
-    return `/flight-search?${qs.toString()}`
-  }
+  // Link to the per-route landing page — better SEO target than going
+  // straight to the live search, and the route page's CTA pushes users
+  // into /flight-search with the same prefilled params anyway.
+  const airlineSlug = encodeURIComponent(iata ?? airline.id)
+  const buildHref = (destIata: string) =>
+    `/airlines/${airlineSlug}/destinations/${encodeURIComponent(destIata)}`
 
   return (
     <main className="bg-neutral-50 pb-16 dark:bg-neutral-950">
@@ -80,7 +71,7 @@ export default async function AirlineDestinationsPage({
 
         <header className="flex flex-wrap items-center gap-4">
           {airline.logo_lockup_url || airline.logo_symbol_url ? (
-            <div className="flex size-24 shrink-0 items-center justify-center rounded-xl bg-white p-3 ring-1 ring-neutral-200 dark:bg-neutral-900 dark:ring-neutral-800">
+            <div className="flex size-[7.8rem] shrink-0 items-center justify-center rounded-xl bg-white p-3 ring-1 ring-neutral-200 dark:bg-neutral-900 dark:ring-neutral-800">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={airline.logo_lockup_url ?? airline.logo_symbol_url ?? ''}
@@ -98,15 +89,17 @@ export default async function AirlineDestinationsPage({
             </h1>
             <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400">
               Browse every destination NXT.DEALS surfaces, with each search
-              pre-filtered to {airline.name}. Clicking a card runs a real flight
-              search — if no offers are returned, this airline doesn&apos;t fly
-              that route on your dates.
+              pre-filtered to {airline.name} from{' '}
+              <span className="font-mono">{origin.iata}</span> ({origin.name}).
+              Clicking a card runs a real flight search — if no offers are
+              returned, this airline doesn&apos;t fly that route on your dates.
+              You can change the origin on the search page.
             </p>
           </div>
         </header>
 
         <section className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {POPULAR_DESTINATIONS.map((d) => (
+          {POPULAR_DESTINATIONS.filter((d) => d.iata !== origin.iata).map((d) => (
             <Link
               key={d.iata}
               href={buildHref(d.iata)}

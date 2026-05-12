@@ -1,6 +1,7 @@
 'use client'
 
 import { Popover, PopoverButton, PopoverPanel } from '@headlessui/react'
+import { ArrowRightIcon, CalendarDaysIcon } from '@heroicons/react/24/outline'
 import clsx from 'clsx'
 import { FC } from 'react'
 import DatePicker from 'react-datepicker'
@@ -10,32 +11,25 @@ interface Props {
   startDate: Date | null
   endDate: Date | null
   onChange: (range: { start: Date | null; end: Date | null }) => void
-  startLabel?: string
-  endLabel?: string
 }
 
-const labelClass = 'mb-1.5 block text-sm font-medium text-neutral-700 dark:text-neutral-300'
-const triggerClass =
-  'w-full rounded-lg border border-neutral-300 bg-white px-3 py-2.5 text-left text-sm text-neutral-900 hover:border-neutral-400 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500 dark:border-neutral-600 dark:bg-neutral-800 dark:text-neutral-100'
-
-function formatDate(d: Date | null): string {
+function formatShort(d: Date | null): string {
   if (!d) return ''
   return d.toLocaleDateString('en-GB', {
     weekday: 'short',
     day: 'numeric',
     month: 'short',
-    year: 'numeric',
   })
 }
 
-export const DateRangePopover: FC<Props> = ({
-  tripType,
-  startDate,
-  endDate,
-  onChange,
-  startLabel = 'Departure',
-  endLabel = 'Return',
-}) => {
+function formatTrigger(start: Date | null, end: Date | null, tripType: 'return' | 'oneway'): string {
+  if (!start) return ''
+  if (tripType === 'oneway') return formatShort(start)
+  if (!end) return formatShort(start)
+  return `${formatShort(start)} - ${formatShort(end)}`
+}
+
+export const DateRangePopover: FC<Props> = ({ tripType, startDate, endDate, onChange }) => {
   const today = new Date()
   today.setHours(0, 0, 0, 0)
 
@@ -48,57 +42,102 @@ export const DateRangePopover: FC<Props> = ({
     }
   }
 
+  const triggerValue = formatTrigger(startDate, endDate, tripType)
+
   return (
-    <Popover className={clsx('relative col-span-1', tripType === 'return' && 'sm:col-span-2 lg:col-span-2')}>
-      {/* Triggers — both open the same popover */}
-      <div className={clsx('grid gap-3', tripType === 'return' ? 'grid-cols-2' : 'grid-cols-1')}>
-        <div>
-          <label className={labelClass}>{startLabel}</label>
-          <PopoverButton className={triggerClass} type="button">
-            {startDate ? (
-              formatDate(startDate)
-            ) : (
-              <span className="text-neutral-400">Select date</span>
+    <Popover className="relative">
+      <PopoverButton
+        type="button"
+        className="group relative flex w-full items-center gap-3 rounded-lg border border-neutral-300 bg-white px-4 py-2 text-left transition-colors hover:border-neutral-400 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500 dark:border-neutral-600 dark:bg-neutral-800 dark:hover:border-neutral-500"
+      >
+        <CalendarDaysIcon className="size-5 shrink-0 text-neutral-500 dark:text-neutral-400" aria-hidden="true" />
+        <div className="min-w-0 flex-1">
+          <span className="block text-[11px] font-medium leading-tight text-neutral-700 dark:text-neutral-300">
+            Dates
+          </span>
+          <span
+            className={clsx(
+              'block truncate text-base',
+              triggerValue
+                ? 'font-semibold text-neutral-900 dark:text-neutral-100'
+                : 'text-neutral-500 dark:text-neutral-400'
             )}
-          </PopoverButton>
+          >
+            {triggerValue || 'Select dates'}
+          </span>
         </div>
-        {tripType === 'return' && (
-          <div>
-            <label className={labelClass}>{endLabel}</label>
-            <PopoverButton className={triggerClass} type="button">
-              {endDate ? (
-                formatDate(endDate)
-              ) : (
-                <span className="text-neutral-400">Select date</span>
-              )}
-            </PopoverButton>
-          </div>
-        )}
-      </div>
+      </PopoverButton>
 
       <PopoverPanel
         anchor={{ to: 'bottom start', gap: 8 }}
-        className="z-50 origin-top-left rounded-lg border border-neutral-200 bg-white p-4 shadow-xl dark:border-neutral-700 dark:bg-neutral-900"
+        className="z-50 origin-top-left rounded-xl border border-neutral-200 bg-white shadow-2xl dark:border-neutral-700 dark:bg-neutral-900"
       >
-        {tripType === 'return' ? (
-          <DatePicker
-            selected={startDate ?? undefined}
-            startDate={startDate ?? undefined}
-            endDate={endDate ?? undefined}
-            onChange={handleChange}
-            selectsRange
-            monthsShown={2}
-            minDate={today}
-            inline
-          />
-        ) : (
-          <DatePicker
-            selected={startDate ?? undefined}
-            onChange={handleChange}
-            monthsShown={2}
-            minDate={today}
-            inline
-          />
+        {({ close }) => (
+          <div className="flex w-[min(90vw,46rem)] flex-col">
+            {/* Range summary header */}
+            <div className="flex items-center gap-3 border-b border-neutral-200 px-6 py-4 dark:border-neutral-700">
+              <span
+                className={clsx(
+                  'pb-0.5 text-base font-bold',
+                  startDate
+                    ? 'border-b-2 border-blue-600 text-neutral-900 dark:text-neutral-100'
+                    : 'text-neutral-400'
+                )}
+              >
+                {startDate ? formatShort(startDate) : 'Select departure'}
+              </span>
+              {tripType === 'return' && (
+                <>
+                  <ArrowRightIcon className="size-4 text-neutral-400" aria-hidden="true" />
+                  <span
+                    className={clsx(
+                      'pb-0.5 text-base font-bold',
+                      endDate ? 'text-neutral-900 dark:text-neutral-100' : 'text-neutral-400'
+                    )}
+                  >
+                    {endDate ? formatShort(endDate) : 'Select return'}
+                  </span>
+                </>
+              )}
+            </div>
+
+            {/* Calendar */}
+            <div className="px-4 py-4">
+              {tripType === 'return' ? (
+                <DatePicker
+                  selected={startDate ?? undefined}
+                  startDate={startDate ?? undefined}
+                  endDate={endDate ?? undefined}
+                  onChange={handleChange}
+                  selectsRange
+                  monthsShown={2}
+                  minDate={today}
+                  calendarStartDay={1}
+                  inline
+                />
+              ) : (
+                <DatePicker
+                  selected={startDate ?? undefined}
+                  onChange={handleChange}
+                  monthsShown={2}
+                  minDate={today}
+                  calendarStartDay={1}
+                  inline
+                />
+              )}
+            </div>
+
+            {/* Done */}
+            <div className="flex items-center justify-end border-t border-neutral-200 px-4 py-3 dark:border-neutral-700">
+              <button
+                type="button"
+                onClick={() => close()}
+                className="rounded-full bg-blue-600 px-6 py-2 text-sm font-semibold !text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              >
+                Done
+              </button>
+            </div>
+          </div>
         )}
       </PopoverPanel>
     </Popover>
